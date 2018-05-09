@@ -2,16 +2,17 @@
 # objective:
 # associate the titles of the matches with the presence of the column
 # other than the
-# "class="categoryBox zeroAvailability" 
+# "class="categoryBox zeroAvailability"
 # which indicates e.g. lowAvailability
 
 $ie = new-object -com 'internetexplorer.application'
+# see also 'MSXML2.DOMDocument'
 $ie.visible = $true
 $target_url = 'https://tickets.fifa.com/Services/ADService.html?lang=ru'
 $ie.navigate2($target_url)
 # wait for the page to loads
 while (($ie.Busy -eq $true ) -or ($ie.ReadyState -ne 4)) { # 4 a.k.a. READYSTATE_COMPLETE
-  start-sleep 100
+  start-sleep -milliseconds 100
 }
 $debug =  $false
 $documentElement = $ie.document.documentElement
@@ -76,10 +77,10 @@ if ($m1.length -lt $max_items ){
     $m2[1].outerHTML
     # <div class="categoryBox zeroAvailability" ng-bind="cat.categoryName" ng-class="cat.availabilityColor">CAT 2</div>
   }
-  if ($debug) { 
+  if ($debug) {
     write-output $m2[0].outerHTML
   }
-  if ($debug) {   
+  if ($debug) {
     $m2 | foreach-object {
       write-output ("class: " + $_.className)
 
@@ -98,6 +99,41 @@ if ($m1.length -lt $max_items ){
   }
 }
 
-<# original script 
+<# original script
+Option Explicit
 
+Const READYSTATE_COMPLETE = 4
+Const TimeOut = 10000
+Const link = "https://tickets.fifa.com/Services/ADService.html?lang=ru"
+
+Dim objNodeList, i, j
+
+Dim MatchName(2)	' массив из искомых названий матчей
+MatchName(0) = "Матч 01 - Россия : Саудовская Аравия - Москва «Лужники»"
+MatchName(1) = "Матч 07 - Аргентина : Исландия - Москва «Спартак»"
+MatchName(2) = "Матч 11 - Германия : Мексика - Москва «Лужники»"
+
+With WScript.CreateObject("InternetExplorer.Application")
+	.Visible = False
+	.Navigate(link)
+	
+	Do
+		WScript.Sleep TimeOut	' ожидаем загрузку страницы
+	Loop Until Not .Busy And .ReadyState = READYSTATE_COMPLETE
+	
+	objNodeList = .document.getElementsByClassName("header")	' получаем в NodeList все элементы с указанным классом
+
+	For i = 0 to 2 Step 1
+		For j = 0 to objNodeList.length Step 1	' !!! Ошибка: "Требуется объект '[object HTMLCollection]'
+			' ...
+		Next		
+			
+	Next	
+
+	Set objNodeList = Nothing
+	
+	.Quit
+End With
+
+WScript.Quit 0
 #>
