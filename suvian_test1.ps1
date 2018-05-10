@@ -1,3 +1,30 @@
+function highlight {
+param (
+  [System.Management.Automation.PSReference]$window_ref,
+  [String]$locator,
+  [int]$delay = 100
+)
+  $window = $window_ref.Value
+  $highlightBorderScript = ("var selector = '{0}';var elements = document.querySelectorAll(selector);elements[0].style.border='3px solid yellow';" -f $locator)
+  $window.execScript($highlightBorderScript, 'javascript')
+  start-sleep -milliseconds $delay
+
+  $removeBorderScript = ("var selector = '{0}';var elements = document.querySelectorAll(selector);elements[0].style.border='';"  -f $locator)
+  $window.execScript($removeBorderScript, 'javascript')
+
+}
+
+function click {
+param (
+  [System.Management.Automation.PSReference]$window_ref,
+  [String]$locator
+)
+  $window = $window_ref.Value
+  $clickScript = ("var selector = '{0}';var elements = document.querySelectorAll(selector);elements[0].click();"  -f $locator)
+  $window.execScript($clickScript, 'javascript')
+}
+
+
 $ie = new-object -com 'internetexplorer.application'
 # see also 'MSXML2.DOMDocument'
 $ie.visible = $true
@@ -11,7 +38,6 @@ $debug =  $false
 $documentElement = $ie.document.documentElement
 $document = $ie.document
 $window = $document.parentWindow
-$locator = 'body > div.intro-header > div > div > div > div > h3:nth-child(2) > a'
 
 $m1 = $documentElement.getElementsByClassName('intro-message')
 $e1 = $m1[0]
@@ -26,20 +52,17 @@ $e1.click()
 # $documentElement.FireEvent('onclick', $e2)
 # No such interface supported
 
-$highlightBorderScript = ("var selector = '{0}';var elements = document.querySelectorAll(selector);elements[0].style.border='3px solid yellow';" -f $locator)
-$window.execScript($highlightBorderScript, 'javascript')
-start-sleep -milliseconds 500
+$locator = 'body > div.intro-header > div > div > div > div > h3:nth-child(2) > a'
+highlight -locator $locator -window_ref ([ref]$window)
 
-$removeBorderScript = ("var selector = '{0}';var elements = document.querySelectorAll(selector);elements[0].style.border='';"  -f $locator)
-$window.execScript($removeBorderScript, 'javascript')
 
-$clickScript = ("var selector = '{0}';var elements = document.querySelectorAll(selector);elements[0].click();"  -f $locator)
-$window.execScript($clickScript, 'javascript')
+click -locator $locator -window_ref ([ref]$window)
+
 
 start-sleep -milliseconds 10000
 
 # expect the URL to become
-if ( -not (write-output $document.url -match '.*/1.1link_validate.html$')) {
+if ( -not ($document.url -match '.*/1.1link_validate.html$')) {
   write-output ('Unexpected URL: ' + $document.url )
 }
 $ie.quit()
