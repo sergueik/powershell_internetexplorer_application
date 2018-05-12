@@ -90,7 +90,7 @@ sendKeys -locator 'form[class = "form-inline"]' -text 'This is the text to input
 * [Powershell browser-based tasks](https://westerndevs.com/simple-powershell-automation-browser-based-tasks/)
 * [another post indicating some refactoring possible](https://www.gngrninja.com/script-ninja/2016/9/25/powershell-getting-started-controlling-internet-explorer)
 * [Accessing Javascript functions e.g. scrollTo](https://geekeefy.wordpress.com/2017/09/07/tip-scrolling-internet-explorer-with-powershell/)
-
+* [using element navigation to interact with ssl alert](https://www.kiloroot.com/powershell-script-to-open-a-web-page-and-bypass-ssl-certificate-errors-2/)
 
 ### License
 This project is licensed under the terms of the MIT license.
