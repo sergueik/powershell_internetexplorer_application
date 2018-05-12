@@ -1,8 +1,11 @@
 ### Info
 
 This repository contains projects interacting with Internet Explorer browser from Powershell.
-It strated with converting the legacy VB Script snippet discussed
-in the forum  http://forum.oszone.net/thread-334713.html (in Russian) to Powershell.
+It started with converting the legacy VB Script snippet discussed
+in the forum  http://forum.oszone.net/thread-334713.html (in Russian) to Powershell. 
+
+It appears that even in 2016 - 2018 a lot of people is still using IE to automate web page processing.
+
 Using IE / COM / Powershell appears useful for automating tasks which do not warrant setting up a full blown 
 Selenium / Java application stack, or for restricted environments where installing Java is not an option.
 
@@ -83,6 +86,11 @@ sendKeys -locator 'form[class = "form-inline"]' -text 'This is the text to input
 ### See Also:
 * https://stackoverflow.com/questions/3514945/running-a-javascript-function-in-an-instance-of-internet-explorer?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 * http://www.vbaexpress.com/forum/showthread.php?9690-Solved-call-a-javascript-function
+* [Powershell-With-IE tutorial](http://powershelltutorial.net/technology/Powershell-With-IE)
+* [Powershell browser-based tasks](https://westerndevs.com/simple-powershell-automation-browser-based-tasks/)
+* [another post indicating some refactoring possible](https://www.gngrninja.com/script-ninja/2016/9/25/powershell-getting-started-controlling-internet-explorer)
+* [Accessing Javascript functions e.g. scrollTo](https://geekeefy.wordpress.com/2017/09/07/tip-scrolling-internet-explorer-with-powershell/)
+
 
 ### License
 This project is licensed under the terms of the MIT license.

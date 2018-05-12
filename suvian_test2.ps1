@@ -18,54 +18,16 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-function highlight {
-param (
-  [System.Management.Automation.PSReference]$window_ref,
-  [String]$locator,
-  [int]$delay = 100
-)
-  $window = $window_ref.Value
-  $highlightBorderScript = (@"
-var selector = '{0}';
-var elements = document.querySelectorAll(selector);
-elements[0].style.border='3px solid yellow';
-"@  -f $locator)
-  $window.execScript($highlightBorderScript, 'javascript')
-  start-sleep -milliseconds $delay
+$MODULE_NAME = 'internetexplorer_application_helper.psd1'
+Import-Module -Name ('{0}/{1}' -f '.', $MODULE_NAME )
 
-  $removeBorderScript = (@"
-var selector = '{0}';
-var elements = document.querySelectorAll(selector);
-elements[0].style.border='';
-"@  -f $locator)
-  $window.execScript($removeBorderScript, 'javascript')
-}
-
-function sendKeys {
-param (
-  [System.Management.Automation.PSReference]$window_ref,
-  [String]$locator,
-  [String]$text = 'this is the text'
-)
-  $window = $window_ref.Value 
-  $textEnterScript = (@"
-var selector = '{0}';
-var elements = document.querySelectorAll(selector);
-elements[0].value  = '{1}';
-"@  -f $locator, $text)
-  $window.execScript($textEnterScript, 'javascript')
-}
-
-# main script
 $ie = new-object -com 'internetexplorer.application'
 # see also 'MSXML2.DOMDocument'
 $ie.visible = $true
 $target_url = 'http://suvian.in/selenium/1.2text_field.html'
 $ie.navigate2($target_url)
 # wait for the page to loads
-while (($ie.Busy -eq $true ) -or ($ie.ReadyState -ne 4)) { # 4 a.k.a. READYSTATE_COMPLETE
-  start-sleep -milliseconds 100
-}
+wait_busy -ie_ref ([ref]$ie) 
 $debug =  $false
 $documentElement = $ie.document.documentElement
 $document = $ie.document
@@ -76,6 +38,8 @@ $e1 = $m1[0]
 $e2 = $e1.querySelector('form[class = "form-inline"]')
 
 # NOTE: sent to $document, not to $documentElement or $e1 
+# NOTE: may need to rather use the IHTMLDocument3_getElementById method
+# https://stackoverflow.com/questions/43055991/internetexplorer-application-com-objects-getelementbyid-method-not-working
 $e2 = $document.getElementById('namefield')
 
 $locator = '#namefield'

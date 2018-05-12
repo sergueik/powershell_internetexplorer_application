@@ -18,70 +18,8 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-function highlight {
-param (
-  [System.Management.Automation.PSReference]$window_ref,
-  [System.Management.Automation.PSReference]$document_element_ref,
-  [String]$locator,
-  [int]$delay = 100
-)
-  $window = $window_ref.Value
-  if ($document_element_ref -ne $null) {
-    $document_element = $document_element_ref.Value
-    $element = $null
-    try {
-      $element = $document_element.querySelector($locator)
-      $element.innerHTML | out-null
-    } catch [Exception] {
-      write-Debug ( 'Exception : ' + $_.Exception.Message)
-      return
-    }
-    if ($element -eq $null) {
-      write-Debug (' unable to find {0}' -f $locator )
-      return    
-    }
-  }
-  $highlightBorderScript = (@"
-var selector = '{0}';
-var elements = document.querySelectorAll(selector);
-elements[0].style.border='3px solid yellow';
-"@  -f $locator)
-  try {
-    $window.execScript($highlightBorderScript, 'javascript')
-  } catch [Exception] {
-    write-Debug ( 'Exception : ' + $_.Exception.Message)
-    return
-  }
-  start-sleep -milliseconds $delay
-
-  $removeBorderScript = (@"
-var selector = '{0}';
-var elements = document.querySelectorAll(selector);
-elements[0].style.border='';
-"@  -f $locator)
-  try {
-    $window.execScript($removeBorderScript, 'javascript')
-  } catch [Exception] {
-    write-Debug ( 'Exception : ' + $_.Exception.Message)
-    return
-  }
-}
-
-function click {
-param (
-  [System.Management.Automation.PSReference]$window_ref,
-  [String]$locator
-)
-  $window = $window_ref.Value
-  $clickScript = (@"
-var selector = '{0}';
-var elements = document.querySelectorAll(selector);
-elements[0].click();
-"@  -f $locator)
-  $window.execScript($clickScript, 'javascript')
-}
-
-# main script
+$MODULE_NAME = 'internetexplorer_application_helper.psd1'
+Import-Module -Name ('{0}/{1}' -f '.', $MODULE_NAME )
 
 $ie = new-object -com 'internetexplorer.application'
 # see also 'MSXML2.DOMDocument'
@@ -89,9 +27,9 @@ $ie.visible = $true
 $target_url = 'http://suvian.in/selenium/1.1link.html'
 $ie.navigate2($target_url)
 # wait for the page to loads
-while (($ie.Busy -eq $true ) -or ($ie.ReadyState -ne 4)) { # 4 a.k.a. READYSTATE_COMPLETE
-  start-sleep -milliseconds 100
-}
+# ([ref]$ie) | wait_while_busy
+wait_busy -ie_ref ([ref]$ie) 
+
 $debug =  $false
 $document_element = $ie.document.documentElement
 $document = $ie.document

@@ -1,0 +1,10 @@
+@{ ModuleVersion     = '0.0.1'    
+   Author            = 'Serguei Kouzmine'
+   CompanyName       = ''
+   Copyright         = 'Copyright 2018'
+   Description       = 'Helper Utilities for Powershell InternetExplorer Application Testing'
+   GUID              = '{40602126-ae36-423c-b8aa-d61e858c633d}'
+   PowerShellVersion = '2.0'
+   CLRVersion        = '4.0'
+   NestedModules     = 'internetexplorer_application_helper.psm1'
+}
