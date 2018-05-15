@@ -1,0 +1,54 @@
+# origin: https://social.technet.microsoft.com/Forums/ie/en-US/d1a556b7-54db-4513-bafd-f16ed000f9ac/vba-to-dismiss-an-ie8-or-ie9-message-from-webpage-popup-window?forum=ieitprocurrentver
+# http://www.slforms.universalservice.org/Form471Expert/471StatusCheck.aspx
+Option Explicit
+Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+
+'Sends the specified message to a window or windows. The SendMessage function calls the window procedure
+'for the specified window and does not return until the window procedure has processed the message.
+Public Declare Function SendMessage Lib "user32" Alias "SendMessageA" _
+(ByVal hWND As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
+
+'Retrieves a handle to the top-level window whose class name and window name match the specified strings.
+'This function does not search child windows. This function does not perform a case-sensitive search.
+Public Declare Function FindWindow Lib "user32" Alias "FindWindowA" _
+(ByVal lpClassName As String, ByVal lpWindowName As String) As Long
+
+'Retrieves a handle to a window whose class name and window name match the specified strings.
+'The function searches child windows, beginning with the one following the specified child window.
+'This function does not perform a case-sensitive search.
+Public Declare Function FindWindowEx Lib "user32" Alias "FindWindowExA" _
+(ByVal hWnd1 As Long, ByVal hWnd2 As Long, ByVal lpsz1 As String, _
+ByVal lpsz2 As String) As Long
+
+Public Const BM_CLICK = &HF5&
+
+
+Sub t1022()
+Dim objie As Object
+Dim i As Long, hWND As Long, childHWND As Long
+Dim htmlTable As htmlTable ' set reference to microsoft html object library
+Set objie = CreateObject("InternetExplorer.Application")
+objie.Visible = True
+
+objie.navigate "http://www.slforms.universalservice.org/Form471Expert/471StatusCheck.aspx"
+Do: Sleep 100: Loop While objie.busy
+
+Set htmlTable = objie.Document.getElementsByName("txtBenId")(0)
+htmlTable.Value = 12345
+With objie.Document.getElementById("txtFundingYear")
+    .Click
+    .Value = 2013
+End With
+
+    objie.Document.getElementById("btnSearch").Click
+    For i = 1 To 10
+        Sleep 100
+        If Not objie.busy Then Exit For
+    Next i
+    If objie.busy Then
+        'MsgBox "popup detected"
+        DoEvents
+    hWND = FindWindow(vbNullString, "Message from webpage")
+    If hWND <> 0 Then childHWND = FindWindowEx(hWND, ByVal 0&, "Button", "OK")
+    If childHWND <> 0 Then SendMessage childHWND, BM_CLICK, 0, 0
+    End If

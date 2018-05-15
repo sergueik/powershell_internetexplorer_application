@@ -91,7 +91,7 @@ sendKeys -locator 'form[class = "form-inline"]' -text 'This is the text to input
 * [another post indicating some refactoring possible](https://www.gngrninja.com/script-ninja/2016/9/25/powershell-getting-started-controlling-internet-explorer)
 * [Accessing Javascript functions e.g. scrollTo](https://geekeefy.wordpress.com/2017/09/07/tip-scrolling-internet-explorer-with-powershell/)
 * [using element navigation to interact with ssl alert](https://www.kiloroot.com/powershell-script-to-open-a-web-page-and-bypass-ssl-certificate-errors-2/)
-
+* [handling alerts via `FindWindow` and `SendMessage`](https://social.technet.microsoft.com/Forums/ie/en-US/d1a556b7-54db-4513-bafd-f16ed000f9ac/vba-to-dismiss-an-ie8-or-ie9-message-from-webpage-popup-window?forum=ieitprocurrentver)
 ### License
 This project is licensed under the terms of the MIT license.
 
