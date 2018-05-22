@@ -67,6 +67,37 @@ elements[0].style.border='';
 
 <#
 .SYNOPSIS
+    Sends Enter Key into the page element (e.g. Select2 element with confirmation behavior)
+.DESCRIPTION
+    Sends text into page element located by Javascript by executing Javascript through InternetExplorer.Application
+    
+.EXAMPLE
+    sendEnterKey -ie_ref ([ref]$ie)
+    # ([ref]$ie) | sendEnterKey # `valuefrompipeline` does not currently work
+.LINK
+    
+.NOTES
+    VERSION HISTORY
+    2018/05/12 Initial Version
+#>
+
+
+function sendEnterKey{ 
+  param (
+    [System.Management.Automation.PSReference]$window_ref
+  )
+  $window = $window_ref.Value
+  # origin: https://stackoverflow.com/questions/596481/is-it-possible-to-simulate-key-press-events-programmatically?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+  try {
+    $window.execScript('var keyboardEvent = document.createEvent("KeyboardEvent"); var initMethod = typeof keyboardEvent.initKeyboardEvent !== "undefined" ? "initKeyboardEvent" : "initKeyEvent"; keyboardEvent[initMethod]( "keydown", true, true, window, false, false, false, false, 40, 0 ); document.dispatchEvent(keyboardEvent); ', 'javascript')
+  } catch [Exception] {
+    write-Debug ( 'Exception : ' + $_.Exception.Message)
+    return
+  }
+
+}
+<#
+.SYNOPSIS
     Clicks page element
 .DESCRIPTION
     Sends clickk to page element located by Javascript by executing Javascript through InternetExplorer.Application
@@ -94,6 +125,18 @@ elements[0].click();
   $window.execScript($clickScript, 'javascript')
 }
 
+function _locate {
+  param (
+    [String]$locator
+  )
+   return (@"
+var selector = '{0}';
+var elements = document.querySelectorAll(selector);
+var element = elements[0];
+"@  -f $locator)
+}
+
+
 <#
 .SYNOPSIS
     Sends Text into the page element
@@ -107,13 +150,14 @@ elements[0].click();
 .NOTES
     VERSION HISTORY
     2018/05/12 Initial Version
+    2018/05/21 Working with selects/options too.
 #>
 function sendKeys {
   param (
     [System.Management.Automation.PSReference]$window_ref,
     [System.Management.Automation.PSReference]$document_element_ref,
     [String]$locator,
-    [String]$text = 'this is the text'
+    [String]$text = 'entered text'
   )
   $window = $window_ref.Value
   # Note: may try the value property
@@ -133,12 +177,12 @@ function sendKeys {
       return
     }
   }
-  $textEnterScript = (@"
+  $sendKeysScript = (@"
 var selector = '{0}';
 var elements = document.querySelectorAll(selector);
 elements[0].value  = '{1}';
 "@  -f $locator, $text)
-  $window.execScript($textEnterScript, 'javascript')
+  $window.execScript($sendKeysScript, 'javascript')
 }
 
 
