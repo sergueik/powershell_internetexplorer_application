@@ -29,15 +29,15 @@ $ie.navigate2($target_url)
 # wait for the page to loads
 wait_busy -ie_ref ([ref]$ie) 
 $debug =  $false
-$documentElement = $ie.document.documentElement
+$document_element = $ie.document.documentElement
 $document = $ie.document
 $window = $document.parentWindow
 
-$m1 = $documentElement.getElementsByClassName('intro-message')
+$m1 = $document_element.getElementsByClassName('intro-message')
 $e1 = $m1[0]
 $e2 = $e1.querySelector('form[class = "form-inline"]')
 
-# NOTE: sent to $document, not to $documentElement or $e1 
+# NOTE: sent to $document, not to $document_element or $e1 
 # NOTE: may need to rather use the IHTMLDocument3_getElementById method
 # https://stackoverflow.com/questions/43055991/internetexplorer-application-com-objects-getelementbyid-method-not-working
 $e2 = $document.getElementById('namefield')

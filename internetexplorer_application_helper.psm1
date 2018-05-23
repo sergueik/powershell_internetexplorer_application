@@ -28,7 +28,8 @@ function highlight {
     $document_element = $document_element_ref.Value
     $element = $null
     try {
-      $element = $document_element.querySelector($locator)
+      $element = $document_element.querySelector($locator, $null)
+      # aterntive: $document_element.querySelectorAll($locator)
       $element.innerHTML | out-null
     } catch [Exception] {
       write-Debug ( 'Exception : ' + $_.Exception.Message)
@@ -72,7 +73,7 @@ elements[0].style.border='';
     Sends text into page element located by Javascript by executing Javascript through InternetExplorer.Application
     
 .EXAMPLE
-    sendEnterKey -ie_ref ([ref]$ie)
+    sendEnterKey -ie_ref ([ref]$ie) [-key $keycode]
     # ([ref]$ie) | sendEnterKey # `valuefrompipeline` does not currently work
 .LINK
     
@@ -84,7 +85,8 @@ elements[0].style.border='';
 
 function sendEnterKey{ 
   param (
-    [System.Management.Automation.PSReference]$window_ref
+    [System.Management.Automation.PSReference]$window_ref,
+    [int]$keycode = 13 
   )
   $window = $window_ref.Value
   # origin: https://stackoverflow.com/questions/596481/is-it-possible-to-simulate-key-press-events-programmatically?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
@@ -131,7 +133,7 @@ document.dispatchEvent(keyboardEvent);
 '@
     #>
   try {
-    $window.execScript('var keyboardEvent = document.createEvent("KeyboardEvent"); var initMethod = typeof keyboardEvent.initKeyboardEvent !== "undefined" ? "initKeyboardEvent" : "initKeyEvent"; keyboardEvent[initMethod]( "keydown", true, true, window, false, false, false, false, 40, 0 ); document.dispatchEvent(keyboardEvent); ', 'javascript')
+    $window.execScript(('var keyboardEvent = document.createEvent("KeyboardEvent"); var initMethod = typeof keyboardEvent.initKeyboardEvent !== "undefined" ? "initKeyboardEvent" : "initKeyEvent"; keyboardEvent[initMethod]( "keydown", true, true, window, false, false, false, false, {0}, 0 ); document.dispatchEvent(keyboardEvent); ' -f $keycode), 'javascript')
   } catch [Exception] {
     write-Debug ( 'Exception : ' + $_.Exception.Message)
     return

@@ -24,53 +24,51 @@ Import-Module -Name ('{0}/{1}' -f '.', $MODULE_NAME )
 $ie = new-object -com 'internetexplorer.application'
 # see also 'MSXML2.DOMDocument'
 $ie.visible = $true
-$target_url = 'http://suvian.in/selenium/1.4gender_dropdown.html'
+$target_url = 'http://suvian.in/selenium/1.5married_radio.html'
 $ie.navigate2($target_url)
-# wait for the page to loads
-# ([ref]$ie) | wait_while_busy
-wait_busy -ie_ref ([ref]$ie)
+wait_busy -ie_ref ([ref]$ie) 
 
 $debug =  $false
 $document_element = $ie.document.documentElement
 $document = $ie.document
 $window = $document.parentWindow
 
+$checkbox_value = 0
+# $locator = ("//div[@class='intro-header']/div[@class='container']/div[@class='row']/div[@class='col-lg-12']/div[@class='intro-message']/form/input[@name='married' and @value='{0}']" -f $checkbox_value )
+# TOO complex, and it was xpath
+# hanging IE
+$locator = ("form input[name='married'][value='{0}']" -f $checkbox_value )
+# https://developer.mozilla.org/en-US/docs/Web/API/Element/querySelector
+# does not work:  actully is hanging IE if sent to the COM object
+#  $element = $document_element.querySelector($locator, $null)
+$locator = "form input[name='married']"
+# https://developer.mozilla.org/en-US/docs/Web/API/Element/querySelectorAll
+$e2 = $null
 $m1 = $document_element.getElementsByClassName('intro-message')
+<#
+hangong IE , try ...catch deos ot help
+try {
+  $e2 = $document_element.querySelectorAll($locator)
+  $e2
+  } catch [Exception] {
+  write-output ( 'Exception : ' + $_.Exception.Message)
+}
+#>
 $e1 = $m1[0]
-$m2 = $e1.getElementsByTagName('h3')
+try {
+  $e2 = $e1.querySelector($locator)
+  $e2
+} catch [Exception] {
+  write-output ( 'Exception : ' + $_.Exception.Message)
+}
 
-$locator = 'div.intro-header select[ name="gender" ]'
+# TODO: bug ?
+# $document_element.querySelectorAll("form input[name='married']") returns only one element, not two
+write-output ('Element 2 {0}' -f $e2.innerHTML)
+# $element.click()
 
 highlight -locator $locator -window_ref ([ref]$window) -document_element_ref ([ref] $document_element)
-$e2 = $e1.querySelector($locator)
-$e2.outerHTML
-<#
-<select name="gender" style="border-image: none; width: 120px; height: 30px; color: green;">
-                         <option value="0" selected="">Select</option>
-                         <option value="1">Male</option>
-                         <option value="2">Female</option>
-                       </select>
-#>
-$xmlObj = [xml]($e2.outerHTML)
+sendEnterKey -locator $locator -window_ref ([ref]$window)  -key 13
+# does not work
+# $ie.quit()
 
-$cnt = 0
-$xmlObj.select.option |
-foreach-object {
-  $element = $_
-  write-output ( 'item # ' + $cnt ) ;
-  write-output $_.'#text'
-  write-output $element.'value'
-  $cnt ++
-
-  # NOTE: will not work this way
-  # write-output ( 'text: ' -f ($_.'#text')) ;
-  # nor this way
-  # write-output ( 'text: ' -f ($element.'#text'))
-}
-sendKeys -locator $locator -window_ref ([ref]$window) -document_element_ref ([ref] $document_element) -text '2'
-
-start-sleep -milliseconds 1000
-
-$ie.quit()
-
-$document.parentWindow.execScript("alert('Arbitrary javascript code')", "javascript")
