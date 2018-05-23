@@ -88,6 +88,48 @@ function sendEnterKey{
   )
   $window = $window_ref.Value
   # origin: https://stackoverflow.com/questions/596481/is-it-possible-to-simulate-key-press-events-programmatically?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+
+<#
+  $sendEnterKeyScript = @'
+var keyboardEvent = document.createEvent("KeyboardEvent");
+var initMethod = typeof keyboardEvent.initKeyboardEvent !== "undefined" ? "initKeyboardEvent" : "initKeyEvent";
+keyboardEvent[initMethod](
+                   "keydown", // event type : keydown, keyup, keypress
+                    true, // bubbles
+                    true, // cancelable
+                    window, // viewArg: should be window
+                    false, // ctrlKeyArg
+                    false, // altKeyArg
+                    false, // shiftKeyArg
+                    false, // metaKeyArg
+                    40, // keyCodeArg : unsigned long the virtual key code, else 0
+                    0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+);
+document.dispatchEvent(keyboardEvent);
+'@ -replace '\/\/.*$', '' -replace "`r", ' ' -replace ' +', ' '
+  write-debug $sendEnterKeyScript
+#>
+  <#
+$sendEnterKeyScript = @'
+  
+var eventType = "keydown";
+var bubbles = true; 
+var cancelable = true; 
+var viewArg = window; 
+var ctrlKeyArg = false; 
+var altKeyArg = false; 
+var shiftKeyArg = false; 
+var metaKeyArg = false; 
+var keyCodeArg = 40; 
+var charCodeArgs = 0; 
+
+var keyboardEvent = document.createEvent("KeyboardEvent");
+var initMethod = typeof keyboardEvent.initKeyboardEvent !== "undefined" ? "initKeyboardEvent" : "initKeyEvent";
+keyboardEvent[initMethod](eventType, bubbles, cancelable, viewArg,ctrlKeyArg, altKeyArg, shiftKeyArg, metaKeyArg, keyCodeArg charCodeArgs);
+document.dispatchEvent(keyboardEvent);
+
+'@
+    #>
   try {
     $window.execScript('var keyboardEvent = document.createEvent("KeyboardEvent"); var initMethod = typeof keyboardEvent.initKeyboardEvent !== "undefined" ? "initKeyboardEvent" : "initKeyEvent"; keyboardEvent[initMethod]( "keydown", true, true, window, false, false, false, false, 40, 0 ); document.dispatchEvent(keyboardEvent); ', 'javascript')
   } catch [Exception] {
