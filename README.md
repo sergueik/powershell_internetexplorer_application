@@ -2,14 +2,14 @@
 
 This repository contains projects interacting with Internet Explorer browser from Powershell.
 It started with converting the legacy VB Script snippet discussed
-in the forum  http://forum.oszone.net/thread-334713.html (in Russian) to Powershell. 
+in the forum  http://forum.oszone.net/thread-334713.html (in Russian) to Powershell.
 
 It appears that even in 2016 - 2018 a lot of people is still using IE to automate web page processing.
 
-Using IE / COM / Powershell appears useful for automating tasks which do not warrant setting up a full blown 
-Selenium / Java application stack, or for restricted environments where installing Java is not an option.
+Using IE / COM / Powershell appears useful for automating tasks which do not warrant setting up a full blown
+Selenium / Java application stack, or for restricted environments where installing Java is not an option - Powershell / Internet Explorer has no install dependencies.
 
-The code pattern thie project is about to explore is
+The code pattern thie project is about to explore looks like the following:
 ```powershell
 $ie = new-object -com 'internetexplorer.application'
 $ie.visible = $true
@@ -62,7 +62,7 @@ callable via
 highlight -locator $locator -window_ref ([ref]$window)
 ```
 
-or 
+or
 ```powershell
 function sendKeys {
 param (
@@ -70,7 +70,7 @@ param (
   [String]$locator,
   [String]$text = 'this is the text'
 )
-  $window = $window_ref.Value 
+  $window = $window_ref.Value
   $textEnterScript = (@"
 var selector = '{0}';
 var elements = document.querySelectorAll(selector);
@@ -94,6 +94,7 @@ sendKeys -locator 'form[class = "form-inline"]' -text 'This is the text to input
 * [handling alerts via `FindWindow` and `SendMessage`](https://social.technet.microsoft.com/Forums/ie/en-US/d1a556b7-54db-4513-bafd-f16ed000f9ac/vba-to-dismiss-an-ie8-or-ie9-message-from-webpage-popup-window?forum=ieitprocurrentver)
 * [InternetExplorer object](https://msdn.microsoft.com/en-us/ie/aa752084(v=vs.94))
 * [another example](https://www.gngrninja.com/script-ninja/2016/9/25/powershell-getting-started-controlling-internet-explorer)
+
 ### License
 This project is licensed under the terms of the MIT license.
 
