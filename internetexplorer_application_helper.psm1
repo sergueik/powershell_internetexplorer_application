@@ -7,7 +7,7 @@
     
 .EXAMPLE
     highlight -window_ref ([ref]$window) -locator $locator -delay 1500 -color 'green'
-    highlight -window_ref ([ref]$window) -document_element_ref ([ref]$document+element) -locator $locator -delay 1500 -color 'green'
+    highlight -window_ref ([ref]$window) -document_element_ref ([ref]$document_element) -locator $locator -delay 1500 -color 'green'
 .LINK
     
 .NOTES
@@ -169,6 +169,21 @@ elements[0].click();
   $window.execScript($clickScript, 'javascript')
 }
 
+<#
+.SYNOPSIS
+    Locates page element
+.DESCRIPTION
+    Sends clickk to page element located by Javascript by executing Javascript through InternetExplorer.Application
+    
+.EXAMPLE
+    _locate -window_ref ([ref]$window) -locator $locator
+.LINK
+    
+.NOTES
+    VERSION HISTORY
+    2018/05/12 Initial Version
+#>
+
 function _locate {
   param (
     [String]$locator
@@ -284,3 +299,43 @@ function scroll_to {
   $window = $window_ref.Value
   $window.scrollTo(0,$vertical_scroll)
 }
+
+
+<#
+.SYNOPSIS
+    Scrolls the browser window (e.g. into the page element offset)
+.DESCRIPTION
+    Scrolls the browser window (e.g. into the page element offset)
+    by executing Javascript through InternetExplorer.Application wrapper
+    
+.EXAMPLE
+    $document = $ie.document
+    $window = $document.parentWindow
+    scroll_element_into_view -winow_ref ([ref]$window) -locator $locator
+.LINK
+    
+.NOTES
+    VERSION HISTORY
+    2018/07/11 Initial Version
+#>
+function scroll_element_into_view { 
+  param (
+    [System.Management.Automation.PSReference]$window_ref,
+    [string]$locator = $null
+  )
+
+  $window = $window_ref.Value
+  [string]$scroll_script = ( @"
+var selector = '{0}';
+var element = document.querySelector(selector);
+element.scrollIntoView();
+"@  -f $locator)
+  try {
+    $window.execScript($scroll_script, 'javascript')
+  } catch [Exception] {
+    write-Debug ( 'Exception : ' + $_.Exception.Message)
+    return
+  }
+}
+
+

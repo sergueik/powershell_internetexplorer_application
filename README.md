@@ -84,16 +84,18 @@ callable via
 sendKeys -locator 'form[class = "form-inline"]' -text 'This is the text to input' -window_ref ([ref]$window)
 ```
 ### See Also:
-* https://stackoverflow.com/questions/3514945/running-a-javascript-function-in-an-instance-of-internet-explorer?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
-* http://www.vbaexpress.com/forum/showthread.php?9690-Solved-call-a-javascript-function
-* [Powershell-With-IE tutorial](http://powershelltutorial.net/technology/Powershell-With-IE)
-* [Powershell browser-based tasks](https://westerndevs.com/simple-powershell-automation-browser-based-tasks/)
-* [another post indicating some refactoring possible](https://www.gngrninja.com/script-ninja/2016/9/25/powershell-getting-started-controlling-internet-explorer)
-* [Accessing Javascript functions e.g. scrollTo](https://geekeefy.wordpress.com/2017/09/07/tip-scrolling-internet-explorer-with-powershell/)
-* [using element navigation to interact with ssl alert](https://www.kiloroot.com/powershell-script-to-open-a-web-page-and-bypass-ssl-certificate-errors-2/)
-* [handling alerts via `FindWindow` and `SendMessage`](https://social.technet.microsoft.com/Forums/ie/en-US/d1a556b7-54db-4513-bafd-f16ed000f9ac/vba-to-dismiss-an-ie8-or-ie9-message-from-webpage-popup-window?forum=ieitprocurrentver)
-* [InternetExplorer object](https://msdn.microsoft.com/en-us/ie/aa752084(v=vs.94))
-* [another example](https://www.gngrninja.com/script-ninja/2016/9/25/powershell-getting-started-controlling-internet-explorer)
+
+  * https://stackoverflow.com/questions/3514945/running-a-javascript-function-in-an-instance-of-internet-explorer?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+  * http://www.vbaexpress.com/forum/showthread.php?9690-Solved-call-a-javascript-function
+  * [Powershell-With-IE tutorial](http://powershelltutorial.net/technology/Powershell-With-IE)
+  * [Powershell browser-based tasks](https://westerndevs.com/simple-powershell-automation-browser-based-tasks/)
+  * [another post indicating some refactoring possible](https://www.gngrninja.com/script-ninja/2016/9/25/powershell-getting-started-controlling-internet-explorer)
+  * [Accessing Javascript functions e.g. scrollTo](https://geekeefy.wordpress.com/2017/09/07/tip-scrolling-internet-explorer-with-powershell/)
+  * [using element navigation to interact with ssl alert](https://www.kiloroot.com/powershell-script-to-open-a-web-page-and-bypass-ssl-certificate-errors-2/)
+  * [handling alerts via `FindWindow` and `SendMessage`](https://social.technet.microsoft.com/Forums/ie/en-US/d1a556b7-54db-4513-bafd-f16ed000f9ac/vba-to-dismiss-an-ie8-or-ie9-message-from-webpage-popup-window?forum=ieitprocurrentver)
+  * [InternetExplorer object](https://msdn.microsoft.com/en-us/ie/aa752084(v=vs.94))
+  * [another example](https://www.gngrninja.com/script-ninja/2016/9/25/powershell-getting-started-controlling-internet-explorer)
+  * [little known Javascript methods (in Russian)](https://jsonplaceholder.typicode.com/comments?postId=200)
 
 ### License
 This project is licensed under the terms of the MIT license.
