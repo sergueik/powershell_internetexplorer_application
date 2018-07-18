@@ -151,7 +151,7 @@ document.dispatchEvent(keyboardEvent);
 .LINK
     
 .NOTES
-    VERSION HISTORY
+        VERSION HISTORY
     2018/05/12 Initial Version
 #>
 
@@ -338,4 +338,29 @@ element.scrollIntoView();
   }
 }
 
+<#
+.SYNOPSIS
+    Closes the browser window, releases COM reference
+.DESCRIPTION
+    Closes the browser window, releases COM reference
+    
+.EXAMPLE
+    finish_test ([ref]$ie)
+.LINK
+    
+.NOTES
+    VERSION HISTORY
+    2018/07/11 Initial Version
+#>
 
+function finish_test() {
+  # TODO: valuefrompipeline
+  param (
+    [System.Management.Automation.PSReference]$ie_ref
+  )
+
+  $ie = $ie_ref.Value
+  $ie.Quit()
+  [System.Runtime.Interopservices.Marshal]::ReleaseComObject($ie) | out-null
+  Remove-Variable ie
+}

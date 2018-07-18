@@ -27,17 +27,50 @@ $ie.visible = $true
 $target_url = 'https://datatables.net/examples/api/highlight.html'
 $ie.navigate2($target_url)
 # wait for the page to loads
-# ([ref]$ie) | wait_while_busy
-wait_busy -ie_ref ([ref]$ie) 
+wait_busy -ie_ref ([ref]$ie)
+# does not really help with
+# Exception from HRESULT: 0x800A01B6
+# 0x800A01B6 Object doesn't support property or method
+# 0x800A138A function expected / NotSupportedException
+#    + FullyQualifiedErrorId : System.NotSupportedException
+while($ie.Busy) {
+  start-sleep -Milliseconds 100
+}
 
+start-sleep -Milliseconds 1000
 $debug =  $false
-$document_element = $ie.document.documentElement
 $document = $ie.document
+$document_element = $document.documentElement
 $window = $document.parentWindow
 # $document | get-member
+try {
+  $table = $document.getElementsByTagName('table').Item(0)
+  # write-output $table.innerHTML
+    write-output ('tag name: {0}' -f $table.tagName )
+    write-output ('id: {0}' -f $table.id )
+} catch [Exception] {
+  write-output ( 'Exception : ' + $_.Exception.Message)
+  # return
+}
 
-$table = $document.getElementById('example')
-write-output $table.innerHTML
+try {
+  $table = $document.getElementById('example')
+  # write-output $table.innerHTML
+  write-output ('tag name: {0}' -f $table.tagName )
+  write-output ('id: {0}' -f $table.id )
+  # https://msdn.microsoft.com/pt-br/windows/desktop/gg293067
+  # W3CException_DOM_SYNTAX_ERR 0x8070000C
+  # NOTE: with querySelectorAll even within a try...catch the runtime error is possible:
+  # $table.querySelectorAll('tbody > tr > td')
+  # A problem caused the program to stop working properly
+  # Windows will close the program and notify you if a solution is avaiable
+  $element = $table.querySelector('tbody > tr:nth-of-type(10) > td:nth-of-type(2)')
+  write-output $element.outerHTML
+  # Exception from HRESULT: 0x800A01B6
+} catch [Exception] {
+  write-output ( 'Exception : ' + $_.Exception.Message)
+  # return
+}
 
 $cell_text = 'Software Engineer'
 
@@ -55,23 +88,23 @@ for (var row_cnt = 0 ;row_cnt != rows.length;row_cnt ++ ){
   for (var cell_cnt = 0 ; cell_cnt != cells.length;cell_cnt ++ ){
     var cell = cells[cell_cnt];
       if (cell.innerHTML.indexOf(cell_text) == 0) {
-        alert(cell.innerHTML);
+        /* alert(cell.innerHTML); */
     }
-  }  
+  }
 }
 "@  -replace "`n", ' '
-write-output $script_template 
-$script = ( $script_template  -f 'tbody/tr' , 'td', 'Software Engineer' )
-write-output $script
+write-output $script_template
+$script = ( $script_FFFtemplate  -f 'tbody/tr' , 'td', 'Software Engineer' )
+write-output $scriWWpt
 Error formatting a string: Input string was not in a correct format..
 #>
-$row_selector = '#example tbody > tr' 
-$cell_selector = 'td'
-
+$row_selector = '#example tbody > tr'
+$table_cell_selector = 'td'
+$table_row_selector = 'table#example tbody > tr'
 $script = @"
 
-var row_selector = '#example tbody > tr';
-var cell_selector = 'td';
+var row_selector = '${table_row_selector}';
+var cell_selector = '${table_cell_selector}';
 var cell_text = 'Software Engineer';
 var rows = document.querySelectorAll(row_selector);
 for (var row_cnt = 0 ;row_cnt != rows.length;row_cnt ++ ){
@@ -80,14 +113,14 @@ for (var row_cnt = 0 ;row_cnt != rows.length;row_cnt ++ ){
   for (var cell_cnt = 0 ; cell_cnt != cells.length;cell_cnt ++ ){
     var cell = cells[cell_cnt];
       if (cell.innerHTML.indexOf(cell_text) == 0) {
-        alert(cell.innerHTML);
+        /* alert(cell.innerHTML); */
     }
-  }  
+  }
 }
-"@  -replace "`n", ' '
-write-output $script
+"@  -replace "\n", ' '
+write-output ("Script:`n{0}" -f $script)
 
 $window.execScript($script, 'javascript')
-
-$ie.quit()
-
+$ie.Quit()
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($ie) | out-null
+Remove-Variable ie
