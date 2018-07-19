@@ -6,7 +6,7 @@ in the forum  http://forum.oszone.net/thread-334713.html (in Russian) to Powersh
 
 It appears that even in 2016 - 2018 a lot of people is still using IE to automate web page processing.
 
-![controlling IE with Powershell](https://github.com/sergueik/powershell_internetexplorer_application/blob/screenshots/capture.png)
+![controlling IE with Powershell](https://github.com/sergueik/powershell_internetexplorer_application/blob/master/screenshots/capture.png)
 
 Using IE / COM / Powershell appears useful for automating tasks which do not warrant setting up a full blown
 Selenium / Java application stack, or for restricted environments where installing Java is not an option - Powershell / Internet Explorer has no install dependencies.
