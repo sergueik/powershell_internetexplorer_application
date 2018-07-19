@@ -367,11 +367,12 @@ function finish_test {
 
 <#
 .SYNOPSIS
-    Returns the rowset of attribute or text data paired together from element found via querySelectorAll
+    Runs the javascript in the web page to collect and optionally returns the rowset of attribute or text data paired together from element found via querySelectorAll
 
 .DESCRIPTION
-    Returns the rowset of attribute pairs or text data from element found via querySelectorAll,
+    Runs the javascript in the web page to collect and optionally returns the rowset of attribute pairs or text data from element found via querySelectorAll,
     It  is useful because the querySelectorAll method is not very stable with IE controlled through Powershell
+    NOTE: setting debug switch will lead to browser showing the data in the alert dialog.
 
 .EXAMPLE
     $result_tag = 'result'
@@ -386,6 +387,7 @@ function finish_test {
     } catch [Exception] {
         write-output ('Exception : ' + $_.Exception.Message)
     }
+    When the document_ref parameter is provided, the function itself collects and formats the result array as in:
 
 .LINK
 
@@ -397,12 +399,17 @@ function finish_test {
 function collect_data_hash {
   param (
     [System.Management.Automation.PSReference]$window_ref,
+    # NOTE: setting the default value of $null to PSReference paramter is a bad idea:
+    # Cannot process argument transformation on parameter'document_ref'. Reference type is expected in argument.
+    [System.Management.Automation.PSReference]$document_ref,
     [String]$element_locator,
     [String]$key_attribute = $null,
     [String]$value_attribute = 'class',
     [string]$result_tag = 'PSResult',
     [switch]$debug
   )
+
+  $window = $window_ref.Value
 
   [bool]$debug_flag = [bool]$PSBoundParameters['debug'].IsPresent
   [string]$debug_str = 'false'
@@ -444,20 +451,39 @@ function collect_data_hash {
 # TODO: multiline heredoc for $script_template
 
   if ($debug_flag) {
-    write-output  ("script`n:{0}" -f $script)
+    write-debug ("Script`n:{0}" -f $script)
   }
   $window.execScript($script, 'javascript')
 
+  [String[]]$result_rowset = @(@{})
+  if ($document_ref -ne $null){
+    $document = $document_ref.Value
+    $result_raw = $document.body.getAttribute($result_tag)
+    write-debug ('Result (raw): ( in "' + $result_tag + '") ' + $result_raw)
+    try {
+      $result_rowset = $result_raw | convertfrom-json
+      if (-not ($debugpreference -match 'continue')) {
+        format-list -InputObject $result_rowset
+      }
+    } catch [Exception] {
+      if (-not ($debugpreference -match 'continue')) {
+        throw $message
+      } else {
+        write-debug ('Exception : ' + $_.Exception.Message)
+      }
+    }
+  }
+  return $result_rowset
 }
 
 <#
 .SYNOPSIS
-    Returns the rowset of attribute or text data paired together from element found via querySelectorAll
+    Runs the javascript in the web page to collect and optionally returns the array of attribute or text data paired together from element found via querySelectorAll
 
 .DESCRIPTION
-    Returns the rowset of attribute pairs or text data from element found via querySelectorAll,
+    Runs the javascript in the web page to collect the array of attribute pairs or text data from element found via querySelectorAll,
     It  is useful because the querySelectorAll method is not very stable with IE controlled through Powershell
-    NOTE: debug flag will lead to browser showing the data in the alert dialog.
+    NOTE: setting debug switch will lead to browser showing the data in the alert dialog.
 .EXAMPLE
     $result_tag = 'result'
     $element_locator = 'section#downloads ul.driver-downloads li.driver-download > a'
@@ -469,6 +495,9 @@ function collect_data_hash {
     # NOTE: final conversion on the caller side
     $result_array = ($result_raw -replace '^\[', '' -replace '\]$' ) -split ','
     $result_array | format-list
+    When the document_ref parameter is provided, the function itself collects and formats the result array as in:
+    $result = collect_data_array -window_ref ([ref]$window) `
+      -element_locator 'a' -element_attribute 'href' -result_tag $result_tag
 
 .LINK
 
@@ -481,11 +510,16 @@ function collect_data_hash {
 function collect_data_array {
   param (
     [System.Management.Automation.PSReference]$window_ref,
+    # NOTE: setting the default value of $null to PSReference paramter is a bad idea:
+    # Cannot process argument transformation on parameter'document_ref'. Reference type is expected in argument.
+    [System.Management.Automation.PSReference]$document_ref,
     [String]$element_locator,
     [String]$element_attribute = 'class',
     [string]$result_tag = 'PSResult',
     [switch]$debug
   )
+
+  $window = $window_ref.Value
 
   [bool]$debug_flag = [bool]$PSBoundParameters['debug'].IsPresent
   [string]$debug_str = 'false'
@@ -512,8 +546,19 @@ function collect_data_array {
     }
 "@
   if ($debug_flag) {
-    write-output  ("script`n:{0}" -f $script)
+    write-debug ("Script`n:{0}" -f $script)
   }
   $window.execScript($script, 'javascript')
-
+  [String[]]$result_array = @()
+  if ($document_ref -ne $null){
+    $document = $document_ref.Value
+    [String]$result_raw = $document.body.getAttribute($result_tag)
+    write-debug ('Result (raw): ( in "' + $result_tag + '") ' + $result_raw)
+    # NOTE: final conversion on the caller side
+    $result_array = ($result_raw -replace '^\[', '' -replace '\]$' ) -split ','
+    if (-not ($debugpreference -match 'continue')) {
+      $result_array | format-list
+    }
+  }
+  return $result_array;
 }

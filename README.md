@@ -85,6 +85,49 @@ callable via
 ```powershell
 sendKeys -locator 'form[class = "form-inline"]' -text 'This is the text to input' -window_ref ([ref]$window)
 ```
+
+One can also make Powershell invoke some Javascipt code in the browser and receive e.g. the set of specific attributes of a set of elements
+using one of the helper functions:
+
+```powershell
+
+$ie = new-object -com 'internetexplorer.application'
+$target_url = 'https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/'
+$ie.navigate2($target_url)
+$document = $ie.document
+$document_element = $document.documentElement
+$window = $document.parentWindow
+$result_tag = 'PSResult'
+$element_locator = 'section#downloads ul.driver-downloads li.driver-download > a'
+
+$result_array =  collect_data_array -window_ref ([ref]$window) -document_ref ([ref]$document) `
+                -element_locator $element_locator -element_attribute 'href' -result_tag $result_tag -debug
+
+$result_array | format-list
+
+```
+would produce array of results (href attributes of the links in the table in this example):
+```powershell
+"https://download.microsoft.com/download/F/8/A/F8AF50AB-3C3A-4BC4-8773-DC27B32988DD/MicrosoftWebDriver.exe"
+"https://download.microsoft.com/download/D/4/1/D417998A-58EE-4EFE-A7CC-39EF9E020768/MicrosoftWebDriver.exe"
+...
+``` 
+while
+```powershell
+$result_obj =  collect_data_hash -window_ref ([ref]$window) -document_ref ([ref]$document) `
+             -element_locator $element_locator -value_attribute 'href' -result_tag $result_tag -debug
+
+format-list -InputObject $result_obj
+
+```
+would produce a rowset of hashes:
+```powershell
+@{key=Release 17134; value=https://download.microsoft.com/download/F/8/A/F8AF50AB-3C3A-4BC4-8773-DC27B32988DD/MicrosoftWebDriver.exe}
+@{key=Release 16299; value=https://download.microsoft.com/download/D/4/1/D417998A-58EE-4EFE-A7CC-39EF9E020768/MicrosoftWebDriver.exe}
+...
+``` 
+which can be coverted into a hash with of links with text of the cell serving as the key.
+
 ### See Also:
 
   * https://stackoverflow.com/questions/3514945/running-a-javascript-function-in-an-instance-of-internet-explorer?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
