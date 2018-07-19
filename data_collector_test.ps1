@@ -49,16 +49,22 @@ $result_tag = 'my_data'
 $element_locator = 'section#downloads ul.driver-downloads li.driver-download > a'
 collect_data_hash -window_ref ([ref]$window) -element_locator $element_locator -value_attribute 'href' -result_tag $result_tag -debug
 
-$result = $document.body.getAttribute($result_tag)
-write-output ('Result (raw): ( in "' + $result_tag + '") ' + $result)
+$result_raw = $document.body.getAttribute($result_tag)
+write-output ('Result (raw): ( in "' + $result_tag + '") ' + $result_raw)
 # NOTE:
 try {
-  $result_obj = $result   | convertfrom-json
-    format-list -InputObject $result_obj
+  $result_obj = $result_raw | convertfrom-json
+  format-list -InputObject $result_obj
 } catch [Exception] {
-    write-output ('Exception : ' + $_.Exception.Message)
+  write-output ('Exception : ' + $_.Exception.Message)
 }
 
+collect_data_array -window_ref ([ref]$window) -element_locator $element_locator -element_attribute 'href' -result_tag $result_tag -debug
+
+$result_raw = $document.body.getAttribute($result_tag)
+write-output ('Result (raw): ( in "' + $result_tag + '") ' + $result_raw)
+$result_array = ($result_raw -replace '^\[', '' -replace '\]$' ) -split ','
+$result_array | format-list
 # quit and dispose IE
 $ie.Quit()
 [System.Runtime.Interopservices.Marshal]::ReleaseComObject($ie) | out-null

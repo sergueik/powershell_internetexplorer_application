@@ -374,7 +374,19 @@ function finish_test {
     It  is useful because the querySelectorAll method is not very stable with IE controlled through Powershell
 
 .EXAMPLE
-    collect_data_hash -window_ref ([ref]$window) -element_locator 'a' -key_attribute 'href' -value_attribute 'text' -result_tag 'my_data'
+    $result_tag = 'result'
+    collect_data_hash -window_ref ([ref]$window) `
+      -element_locator 'a' -key_attribute 'href' -value_attribute 'text' -result_tag $result_tag
+    [String]$result_raw = $document.body.getAttribute($result_tag)
+    write-output ('Result (raw): ( in "' + $result_tag + '") ' + $result_raw)
+    # NOTE: final conversion on the caller side
+    try {
+      $result_obj = $result_raw   | convertfrom-json
+        format-list -InputObject $result_obj
+    } catch [Exception] {
+        write-output ('Exception : ' + $_.Exception.Message)
+    }
+
 .LINK
 
 .NOTES
@@ -392,44 +404,116 @@ function collect_data_hash {
     [switch]$debug
   )
 
-# can not directly return the value
-# https://stackoverflow.com/questions/26021813/ie-com-automation-how-to-get-the-return-value-of-window-execscript-in-powersh
-# TODO: multiline heredoc for $script_template
-[bool]$debug_flag = [bool]$PSBoundParameters['debug'].IsPresent
-[string]$debug_str = 'false'
-if ($debug_flag) {
-  $debug_str =  'true'
-} else {
-  $debug_str = 'false'
-}
-$script = @"
-  var element_locator = '${element_locator}';
-  var key_attribute = '${key_attribute}';
-  var value_attribute = '${value_attribute}';
-  var result_tag = '${result_tag}';
-  var debug = ${debug_str};
+  [bool]$debug_flag = [bool]$PSBoundParameters['debug'].IsPresent
+  [string]$debug_str = 'false'
+  if ($debug_flag) {
+    $debug_str =  'true'
+  } else {
+    $debug_str = 'false'
+  }
+  # can not directly return the value, need to place it into the page
+  # https://stackoverflow.com/questions/26021813/ie-com-automation-how-to-get-the-return-value-of-window-execscript-in-powersh
+  $script = @"
+    var element_locator = '${element_locator}';
+    var key_attribute = '${key_attribute}';
+    var value_attribute = '${value_attribute}';
+    var result_tag = '${result_tag}';
+    var debug = ${debug_str};
 
-  var elements = document.querySelectorAll(element_locator);
-  var result = [];
-  for (var cnt =0 ;cnt != elements.length ; cnt ++) {
-    var element = elements[cnt];
-    var data_key = ''
-    if (key_attribute!= ''){
-      data_key = element.getAttribute(key_attribute)
-    } else {
-      data_key = element.innerHTML
+    var elements = document.querySelectorAll(element_locator);
+    var result = [];
+    for (var cnt =0 ;cnt != elements.length ; cnt ++) {
+      var element = elements[cnt];
+      var data_key = ''
+      if (key_attribute!= ''){
+        data_key = element.getAttribute(key_attribute)
+      } else {
+        data_key = element.innerHTML
+      }
+      result.push( {
+        'key':  data_key,
+        'value': element.getAttribute(value_attribute),
+      });
     }
-    result.push( {
-      'key':  data_key,
-      'value': element.getAttribute(value_attribute),
-    });
-  }
-  document.body.setAttribute(result_tag , JSON.stringify(result) );
-  if (debug) {
-    alert('Result: ( in "' + result_tag + '") ' + document.body.getAttribute(result_tag));
-  }
+    document.body.setAttribute(result_tag , JSON.stringify(result) );
+    if (debug) {
+      alert('Result: ( in "' + result_tag + '") ' + document.body.getAttribute(result_tag));
+    }
 "@
-write-output  ("script`n:{0}" -f $script)
+# ^^ NOTE: heredoc end mark needs to be placed the beginning or the line.
+# TODO: multiline heredoc for $script_template
+
+  if ($debug_flag) {
+    write-output  ("script`n:{0}" -f $script)
+  }
+  $window.execScript($script, 'javascript')
+
+}
+
+<#
+.SYNOPSIS
+    Returns the rowset of attribute or text data paired together from element found via querySelectorAll
+
+.DESCRIPTION
+    Returns the rowset of attribute pairs or text data from element found via querySelectorAll,
+    It  is useful because the querySelectorAll method is not very stable with IE controlled through Powershell
+    NOTE: debug flag will lead to browser showing the data in the alert dialog.
+.EXAMPLE
+    $result_tag = 'result'
+    $element_locator = 'section#downloads ul.driver-downloads li.driver-download > a'
+    $element_attribute = 'href'
+    collect_data_array -window_ref ([ref]$window) `
+      -element_locator 'a' -element_attribute 'href' -result_tag $result_tag
+    [String]$result_raw = $document.body.getAttribute($result_tag)
+    write-output ('Result (raw): ( in "' + $result_tag + '") ' + $result_raw)
+    # NOTE: final conversion on the caller side
+    $result_array = ($result_raw -replace '^\[', '' -replace '\]$' ) -split ','
+    $result_array | format-list
+
+.LINK
+
+.NOTES
+    VERSION HISTORY
+    2018/07/18 Initial Version
+#>
+
+# a data collector variant with a different DOM of the response JSON
+function collect_data_array {
+  param (
+    [System.Management.Automation.PSReference]$window_ref,
+    [String]$element_locator,
+    [String]$element_attribute = 'class',
+    [string]$result_tag = 'PSResult',
+    [switch]$debug
+  )
+
+  [bool]$debug_flag = [bool]$PSBoundParameters['debug'].IsPresent
+  [string]$debug_str = 'false'
+  if ($debug_flag) {
+    $debug_str =  'true'
+  } else {
+    $debug_str = 'false'
+  }
+  $script = @"
+    var element_locator = '${element_locator}';
+    var element_attribute = '${element_attribute}';
+    var result_tag = '${result_tag}';
+    var debug = ${debug_str};
+
+    var elements = document.querySelectorAll(element_locator);
+    var result = [];
+    for (var cnt =0 ;cnt != elements.length ; cnt ++) {
+      var element = elements[cnt];
+      result.push( element.getAttribute(element_attribute));
+    }
+    document.body.setAttribute(result_tag , JSON.stringify(result) );
+    if (debug) {
+      alert('Result: ( in "' + result_tag + '") ' + document.body.getAttribute(result_tag));
+    }
+"@
+  if ($debug_flag) {
+    write-output  ("script`n:{0}" -f $script)
+  }
   $window.execScript($script, 'javascript')
 
 }
