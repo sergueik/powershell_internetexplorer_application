@@ -4,12 +4,12 @@
     Highlights page element
 .DESCRIPTION
     Highlights page element by executing Javascript through InternetExplorer.Application
-    
+
 .EXAMPLE
     highlight -window_ref ([ref]$window) -locator $locator -delay 1500 -color 'green'
     highlight -window_ref ([ref]$window) -document_element_ref ([ref]$document_element) -locator $locator -delay 1500 -color 'green'
 .LINK
-    
+
 .NOTES
     VERSION HISTORY
     2018/05/12 Initial Version
@@ -71,22 +71,22 @@ elements[0].style.border='';
     Sends Enter Key into the page element (e.g. Select2 element with confirmation behavior)
 .DESCRIPTION
     Sends text into page element located by Javascript by executing Javascript through InternetExplorer.Application
-    
+
 .EXAMPLE
     sendEnterKey -ie_ref ([ref]$ie) [-key $keycode]
     # ([ref]$ie) | sendEnterKey # `valuefrompipeline` does not currently work
 .LINK
-    
+
 .NOTES
     VERSION HISTORY
     2018/05/12 Initial Version
 #>
 
 
-function sendEnterKey{ 
+function sendEnterKey{
   param (
     [System.Management.Automation.PSReference]$window_ref,
-    [int]$keycode = 13 
+    [int]$keycode = 13
   )
   $window = $window_ref.Value
   # origin: https://stackoverflow.com/questions/596481/is-it-possible-to-simulate-key-press-events-programmatically?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
@@ -113,17 +113,17 @@ document.dispatchEvent(keyboardEvent);
 #>
   <#
 $sendEnterKeyScript = @'
-  
+
 var eventType = "keydown";
-var bubbles = true; 
-var cancelable = true; 
-var viewArg = window; 
-var ctrlKeyArg = false; 
-var altKeyArg = false; 
-var shiftKeyArg = false; 
-var metaKeyArg = false; 
-var keyCodeArg = 40; 
-var charCodeArgs = 0; 
+var bubbles = true;
+var cancelable = true;
+var viewArg = window;
+var ctrlKeyArg = false;
+var altKeyArg = false;
+var shiftKeyArg = false;
+var metaKeyArg = false;
+var keyCodeArg = 40;
+var charCodeArgs = 0;
 
 var keyboardEvent = document.createEvent("KeyboardEvent");
 var initMethod = typeof keyboardEvent.initKeyboardEvent !== "undefined" ? "initKeyboardEvent" : "initKeyEvent";
@@ -145,11 +145,11 @@ document.dispatchEvent(keyboardEvent);
     Clicks page element
 .DESCRIPTION
     Sends clickk to page element located by Javascript by executing Javascript through InternetExplorer.Application
-    
+
 .EXAMPLE
     click -window_ref ([ref]$window) -locator $locator
 .LINK
-    
+
 .NOTES
         VERSION HISTORY
     2018/05/12 Initial Version
@@ -174,11 +174,11 @@ elements[0].click();
     Locates page element
 .DESCRIPTION
     Sends clickk to page element located by Javascript by executing Javascript through InternetExplorer.Application
-    
+
 .EXAMPLE
     _locate -window_ref ([ref]$window) -locator $locator
 .LINK
-    
+
 .NOTES
     VERSION HISTORY
     2018/05/12 Initial Version
@@ -201,11 +201,11 @@ var element = elements[0];
     Sends Text into the page element
 .DESCRIPTION
     Sends text into page element located by Javascript by executing Javascript through InternetExplorer.Application
-    
+
 .EXAMPLE
     sendKeys -window_ref ([ref]$window) -locator $locator -text 'text'
 .LINK
-    
+
 .NOTES
     VERSION HISTORY
     2018/05/12 Initial Version
@@ -250,12 +250,12 @@ elements[0].value  = '{1}';
     Sends Text into the page element
 .DESCRIPTION
     Sends text into page element located by Javascript by executing Javascript through InternetExplorer.Application
-    
+
 .EXAMPLE
     ([ref]$ie) | wait_busy # `valuefrompipeline` does not currently work
-    wait_busy -ie_ref ([ref]$ie) 
+    wait_busy -ie_ref ([ref]$ie)
 .LINK
-    
+
 .NOTES
     VERSION HISTORY
     2018/05/12 Initial Version
@@ -279,18 +279,18 @@ function wait_busy {
 .DESCRIPTION
     Scrolls the browser window (e.g. into the page element offset)
     by executing Javascript through InternetExplorer.Application wrapper
-    
+
 .EXAMPLE
     $document = $ie.document
     $window = $document.parentWindow
-    scroll_to -winow_ref ([ref]$window) -vertical_scroll 500 
+    scroll_to -winow_ref ([ref]$window) -vertical_scroll 500
 .LINK
-    
+
 .NOTES
     VERSION HISTORY
     2018/05/12 Initial Version
 #>
-function scroll_to { 
+function scroll_to {
   param (
     [System.Management.Automation.PSReference]$window_ref,
     [int]$vertical_scroll = 100
@@ -307,18 +307,18 @@ function scroll_to {
 .DESCRIPTION
     Scrolls the browser window (e.g. into the page element offset)
     by executing Javascript through InternetExplorer.Application wrapper
-    
+
 .EXAMPLE
     $document = $ie.document
     $window = $document.parentWindow
     scroll_element_into_view -winow_ref ([ref]$window) -locator $locator
 .LINK
-    
+
 .NOTES
     VERSION HISTORY
     2018/07/11 Initial Version
 #>
-function scroll_element_into_view { 
+function scroll_element_into_view {
   param (
     [System.Management.Automation.PSReference]$window_ref,
     [string]$locator = $null
@@ -343,17 +343,17 @@ element.scrollIntoView();
     Closes the browser window, releases COM reference
 .DESCRIPTION
     Closes the browser window, releases COM reference
-    
+
 .EXAMPLE
     finish_test ([ref]$ie)
 .LINK
-    
+
 .NOTES
     VERSION HISTORY
     2018/07/11 Initial Version
 #>
 
-function finish_test() {
+function finish_test {
   # TODO: valuefrompipeline
   param (
     [System.Management.Automation.PSReference]$ie_ref
@@ -363,4 +363,73 @@ function finish_test() {
   $ie.Quit()
   [System.Runtime.Interopservices.Marshal]::ReleaseComObject($ie) | out-null
   Remove-Variable ie
+}
+
+<#
+.SYNOPSIS
+    Returns the rowset of attribute or text data paired together from element found via querySelectorAll
+
+.DESCRIPTION
+    Returns the rowset of attribute pairs or text data from element found via querySelectorAll,
+    It  is useful because the querySelectorAll method is not very stable with IE controlled through Powershell
+
+.EXAMPLE
+    collect_data_hash -window_ref ([ref]$window) -element_locator 'a' -key_attribute 'href' -value_attribute 'text' -result_tag 'my_data'
+.LINK
+
+.NOTES
+    VERSION HISTORY
+    2018/07/18 Initial Version
+#>
+
+function collect_data_hash {
+  param (
+    [System.Management.Automation.PSReference]$window_ref,
+    [String]$element_locator,
+    [String]$key_attribute = $null,
+    [String]$value_attribute = 'class',
+    [string]$result_tag = 'PSResult',
+    [switch]$debug
+  )
+
+# can not directly return the value
+# https://stackoverflow.com/questions/26021813/ie-com-automation-how-to-get-the-return-value-of-window-execscript-in-powersh
+# TODO: multiline heredoc for $script_template
+[bool]$debug_flag = [bool]$PSBoundParameters['debug'].IsPresent
+[string]$debug_str = 'false'
+if ($debug_flag) {
+  $debug_str =  'true'
+} else {
+  $debug_str = 'false'
+}
+$script = @"
+  var element_locator = '${element_locator}';
+  var key_attribute = '${key_attribute}';
+  var value_attribute = '${value_attribute}';
+  var result_tag = '${result_tag}';
+  var debug = ${debug_str};
+
+  var elements = document.querySelectorAll(element_locator);
+  var result = [];
+  for (var cnt =0 ;cnt != elements.length ; cnt ++) {
+    var element = elements[cnt];
+    var data_key = ''
+    if (key_attribute!= ''){
+      data_key = element.getAttribute(key_attribute)
+    } else {
+      data_key = element.innerHTML
+    }
+    result.push( {
+      'key':  data_key,
+      'value': element.getAttribute(value_attribute),
+    });
+  }
+  document.body.setAttribute(result_tag , JSON.stringify(result) );
+  if (debug) {
+    alert('Result: ( in "' + result_tag + '") ' + document.body.getAttribute(result_tag));
+  }
+"@
+write-output  ("script`n:{0}" -f $script)
+  $window.execScript($script, 'javascript')
+
 }
