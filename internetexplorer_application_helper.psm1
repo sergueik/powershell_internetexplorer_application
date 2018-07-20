@@ -562,3 +562,75 @@ function collect_data_array {
   }
   return $result_array;
 }
+
+function get_css_selector_of_element {
+  param (
+    [System.Management.Automation.PSReference]$window_ref,
+    [System.Management.Automation.PSReference]$document_ref,
+    [String]$element_locator,
+    [string]$result_tag = 'PSResult',
+    [switch]$debug
+  )
+
+  $window = $window_ref.Value
+
+  [bool]$debug_flag = [bool]$PSBoundParameters['debug'].IsPresent
+  [string]$debug_str = 'false'
+  if ($debug_flag) {
+    $debug_str =  'true'
+  } else {
+    $debug_str = 'false'
+  }
+
+[string]$script = @"
+cssSelectorOfElement = function(element) {
+	if (!(element instanceof Element))
+		return;
+	var path = [];
+	while (element.nodeType === Node.ELEMENT_NODE) {
+		var selector = element.nodeName.toLowerCase();
+		if (element.id) {
+			if (element.id.indexOf('-') > -1) {
+				selector += '[id="' + element.id + '"]';
+			} else {
+				selector += '#' + element.id;
+			}
+			path.unshift(selector);
+			break;
+		} else if (element.className) {
+			selector += '.' + element.className.replace(/^\s+/,'').replace(/\s+$/,'').replace(/\s+/g, '.');
+		} else {
+			var element_sibling = element;
+			var sibling_cnt = 1;
+			while (element_sibling = element_sibling.previousElementSibling) {
+				if (element_sibling.nodeName.toLowerCase() == selector)
+					sibling_cnt++;
+			}
+			if (sibling_cnt != 1)
+				selector += ':nth-of-type(' + sibling_cnt + ')';
+		}
+		path.unshift(selector);
+		element = element.parentNode;
+	}
+	return path.join(' > ');
+}
+
+    var element_locator = '${element_locator}';
+    var result_tag = '${result_tag}';
+    var debug = ${debug_str};
+
+    var element = document.querySelector(element_locator);
+    var result = cssSelectorOfElement(element);
+       document.body.setAttribute(result_tag, result );
+    if (debug) {
+      alert('The CSS Selector of : document.querySelector(' +
+             element_locator +
+             ') is \n' +
+             document.body.getAttribute(result_tag));
+    }
+"@
+  if ($debug_flag) {
+    write-debug ("Script`n:{0}" -f $script)
+  }
+  $window.execScript($script, 'javascript')
+}
