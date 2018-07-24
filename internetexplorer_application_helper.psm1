@@ -621,7 +621,7 @@ cssSelectorOfElement = function(element) {
 
     var element = document.querySelector(element_locator);
     var result = cssSelectorOfElement(element);
-       document.body.setAttribute(result_tag, result );
+    document.body.setAttribute(result_tag, result );
     if (debug) {
       alert('The CSS Selector of : document.querySelector(' +
              element_locator +
@@ -634,3 +634,112 @@ cssSelectorOfElement = function(element) {
   }
   $window.execScript($script, 'javascript')
 }
+<#
+.SYNOPSIS
+  Finds a value or text of element using another element as a reference, and the selector of closest embedding element and the selector of the target element
+.DESCRIPTION
+  Finds a value or text of element using another element as a reference, and the selector of closest embedding element and the selector of the target element.
+  Uses DOM `closest` method https://developer.mozilla.org/en-US/docs/Web/API/Element/closest that is similar to ancestor xpath
+.EXAMPLE
+  # finds the 'add to card' button on http://store.demoqa.com/products-page/ starting from the price element
+  $element_locator = 'span.currentprice'
+
+  $document = $ie.document
+  $window = $document.parentWindow
+  $result = find_via_closest -window_ref ([ref]$window) -document_ref ([ref]$document) -element_locator $element_locator -ancestor_locator 'form' -target_element_locator 'input[type="submit"]'
+  # result is equal to 'Add to Card'
+.LINK
+  https://habr.com/company/ruvds/blog/416539/
+  https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
+  
+.NOTES
+  VERSION HISTORY
+  2018/07/23 Initial Version
+
+#>
+function find_via_closest {
+  param(
+    [System.Management.Automation.PSReference]$window_ref,
+    [System.Management.Automation.PSReference]$document_ref,
+    [String]$element_locator,
+    [String] $ancestor_locator,
+    [String] $target_element_locator,
+    [string]$result_tag = 'PSResult',
+    [switch]$debug
+  )
+  $window = $window_ref.Value
+  [bool]$debug_flag = [bool]$PSBoundParameters['debug'].IsPresent
+  $document = $document_ref.Value
+  [string]$debug_str = 'false'
+  if ($debug_flag) {
+    $debug_str =  'true'
+  } else {
+    $debug_str = 'false'
+  }
+
+<#
+  # no argument passing working yet
+[string] $script = @"
+  findViaClosest = function (element, ancestorLocator, targetElementLocator) {
+    /* alert('ancestorLocator = ' + ancestorLocator); */
+    var targetElement = element.closest(ancestorLocator).querySelector(targetElementLocator);
+    targetElement.scrollIntoView({ behavior: 'smooth' });
+    return targetElement.text || targetElement.getAttribute('value');
+  }
+  var element = arguments[0];
+  var ancestorLocator = arguments[1];
+  var targetElementLocator = arguments[2];
+  return findViaClosest (element, ancestorLocator, targetElementLocator);
+"@
+  $local:result = (([OpenQA.Selenium.IJavaScriptExecutor]$selenium).ExecuteScript( $local:script, $local:element, $ancestor_locator, $target_element_locator )).ToString()
+  write-debug ('Result = "{0}"' -f $local:result)
+ #>
+
+  [string]$script = @"
+  findViaClosest = function (element, ancestorLocator, targetElementLocator) {
+    alert('ancestorLocator = ' + ancestorLocator);
+    var ancestorElement = element.closest(ancestorLocator);
+    if (ancestorElement != null) {
+      alert('ancestorElement = ' + ancestorElement.innerHTML);
+      var targetElement = ancestorElement.querySelector(targetElementLocator);
+      if (targetElement != null) {
+        alert('targetElement = ' + targetElement.outerHTML);
+        return targetElement.text || targetElement.getAttribute('value');
+      } else {
+        alert('ancestorElement not found');
+      }
+    } else {
+      alert('ancestorElement not found');
+    }
+  }
+  var element_locator = '${element_locator}';
+  var result_tag = '${result_tag}';
+  var debug = ${debug_str};
+  var ancestorLocator = '${ancestor_locator}';
+  var targetElementLocator = '${target_element_locator}';
+  var element = document.querySelector(element_locator);
+  var result = 'not found';
+  if (element!= null) {
+    var result = findViaClosest (element, ancestorLocator, targetElementLocator);
+  }
+  document.body.setAttribute(result_tag, result);
+    if (debug) {
+      alert('The text/value of sibling of: "' +
+             element_locator +
+             '", "' + ancestorLocator + 
+             '", "' + targetElementLocator + '" is \n' +
+             document.body.getAttribute(result_tag));
+    }
+"@
+  if ($debug_flag) {
+    write-debug ("Script:`n{0}" -f $script)
+  }
+  $window.execScript($script, 'javascript')
+  $result = $document.body.getAttribute($result_tag)
+
+  write-debug ('Result = "{0}"' -f $result)
+
+  return $result
+}
+
+
