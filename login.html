@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<body>
+<form action='j_security_check;jsessionid=CAA7DDCC6C60B04CA9BC4111DBD6D2F4' method="post" name='login' AUTOCOMPLETE="off">    
+<table width="100%" height="95%" border="0" cellpadding="0" cellspacing="0">
+  <tr>  
+  <td align="center" valign="middle">
+    <table border="0" align="center" cellpadding="0" cellspacing="0">
+    <tr>
+      <td colspan="2" class="log_bluebg"><span class="log_ltcorner"></span></td>
+      <td align="right" class="log_bluebg"><span class="log_rtcorner"></span></td>
+      </tr>
+    <tr><td colspan="3" class="log_bluebg"><img src="/images/spacer.gif" width="910" height="1"></td></tr>
+    <tr>
+      <td height="409" colspan="3" align="right" class="log_bg">
+          <table border="0" cellpadding="0" cellspacing="0">
+              <tr>
+            <td><img src="/custom/customimages/Custom_LoginLogo.gif" width="252" height="61" hspace="20"></td>
+            <td class="log_separator"></td>
+            <td>
+              <table width="200" border="0" cellpadding="4" cellspacing="0">
+              <tr>
+                <td colspan="2" class="fontBlack" valign='middle'>
+                <div id="message">
+ 
+                </div>
+                </td>
+              </tr>
+  <tr>
+    <td nowrap class="fontBlackBold">Имя пользователя</td>
+    <!-- sd-11880 Loding domain list To login AD authentication or local Authentication -->
+    <td nowrap><span class="fontBlack"><input name="j_username" type="text" class="formStyle" onchange='loadDomainListForADLogin(this)' id="username"></span></td>
+  </tr>
+  <tr>
+    <td nowrap class="fontBlackBold">Пароль</td>
+    <td nowrap><span class="fontBlack"><input name="j_password" type="password" class="formStyle" id="password"></span></td>
+  </tr> 
+  <tr>
+    <td nowrap class="fontBlackBold"><span id="domainListText" style="display:block;">Вход в</span><span id="domainListBlankText" style="display:none;"><img src="/images/spacer.gif" width="1" height="1"></span></td>
+    <td nowrap>
+    <span id="domainListSelect" style="display:block;">
+    <!-- sd-11880 to load domain list based on login name,if user selected local Auth in domain list -->
+      <select name="domain" class="formStyle" onchange='checkLocalAuth(this)'>
+      <option>-- Выбрать --</option>
+        <option value="1"> domain1 </option>
+        <option value="2"> domain2 </option>
+        <option value="3"> domain3 </option>
+        <option value="4"> domain4 </option>
+        <option value="5"> domain5 </option>
+        <option value="6"> domain6 </option>
+      <option value='Local Authentication'>Локальная проверка подлинности</option>      
+      </select>
+    </span>
+    <span id="domainListBlankSelect" style="display:none;"><img src="/images/spacer.gif" width="1" height="1"></span>
+    </td>
+  </tr>
+</table>
+</table>
+</form>
+</body>

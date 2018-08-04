@@ -20,18 +20,32 @@
 
 # https://stackoverflow.com/questions/33558807/powershell-internet-explorer-com-object-select-class-drop-down-menu-item
 # http://www.cyberforum.ru/powershell/thread2281419.html
-# (in Russian)  
+# (in Russian)
 
+# NOTE: requires elevation
 param (
   [switch]$configure
 )
+
+
+# based on: http://blogs.msdn.com/b/virtual_pc_guy/archive/2010/09/23/a-self-elevating-powershell-script.aspx
+# Get the ID and security principal of the current user account
+$id = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+$principal = New-Object System.Security.Principal.WindowsPrincipal ($id)
+
+# Get the security principal for the Administrator role
+$admin = [System.Security.Principal.WindowsBuiltInRole]::Administrator
+
+# Check to see if we are currently running "as Administrator"
+if ( -not $principal.IsInRole($admin)) {
+  write-error 'Please relaunch "as Administrator"'
+  exit 1
+}
 
 [bool]$configure_flag = [bool]$PSBoundParameters['configure'].IsPresent
 
 if ($configure_flag) {
   # https://support.microsoft.com/en-us/help/2002093/allow-active-content-to-run-files-on-my-computer-group-policy-setting
-  # NOTE: requires elevation
-  # TODO: check if elevated
   $hive = 'HKLM:'
   $path = '/Software/Microsoft/Internet Explorer/Main/FeatureControl/FEATURE_LOCALMACHINE_LOCKDOWN'
   $name = 'iexplore.exe'
@@ -63,14 +77,14 @@ Import-Module -Name ('{0}/{1}' -f '.', $MODULE_NAME )
 
 $ie = new-object -com 'internetexplorer.application'
 <#
-TODO: detect  
+TODO: detect
 new-object : Creating an instance of the COM component with CLSID
 {0002DF01-0000-0000-C000-000000000046} from the IClassFactory failed due to the following error: 800704a6 A system shutdown has already been scheduled.
 (Exception from HRESULT: 0x800704A6).
 #>
 # see also 'MSXML2.DOMDocument'
 $ie.visible = $true
-[string]$url = 'C:\developer\sergueik\selenium_java\headless-chrome\a.html'
+[string]$url = 'C:\developer\sergueik\powershell_internetexplorer_application\login.html'
 
 $ie.navigate2($url)
 
