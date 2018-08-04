@@ -60,4 +60,4 @@ format-list -InputObject $result_obj
 # quit and dispose IE
 $ie.Quit()
 [System.Runtime.Interopservices.Marshal]::ReleaseComObject($ie) | out-null
-Remove-Variable ie
+remove-variable ie

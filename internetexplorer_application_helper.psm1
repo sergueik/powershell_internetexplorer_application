@@ -268,6 +268,7 @@ function wait_busy {
 
   while ($ie.Busy -or ($ie.ReadyState -ne 4)) {
     # 4 a.k.a. READYSTATE_COMPLETE
+    write-debug 'waiting'
     start-sleep -milliseconds 100
   }
 
