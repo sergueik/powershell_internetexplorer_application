@@ -652,7 +652,7 @@ cssSelectorOfElement = function(element) {
 .LINK
   https://habr.com/company/ruvds/blog/416539/
   https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
-  
+
 .NOTES
   VERSION HISTORY
   2018/07/23 Initial Version
@@ -727,7 +727,7 @@ function find_via_closest {
     if (debug) {
       alert('The text/value of sibling of: "' +
              element_locator +
-             '", "' + ancestorLocator + 
+             '", "' + ancestorLocator +
              '", "' + targetElementLocator + '" is \n' +
              document.body.getAttribute(result_tag));
     }
@@ -743,4 +743,35 @@ function find_via_closest {
   return $result
 }
 
+# utility from poweshell_selenium repo
+
+function change_registry_setting {
+
+  param(
+    [string]$hive,
+    [string]$path,
+    [string]$name,
+    [string]$value,
+    [string]$propertyType,
+    # will be converted to 'Microsoft.Win32.RegistryValueKind' enumeration
+    # 'String', 'ExpandString', 'Binary', 'DWord', 'MultiString', 'QWord'
+    [switch]$debug
+
+  )
+  pushd $hive
+  cd $path
+  $local:setting = Get-ItemProperty -Path ('{0}/{1}' -f $hive,$path) -Name $name -ErrorAction 'SilentlyContinue'
+  if ($local:setting -ne $null) {
+    if ([bool]$PSBoundParameters['debug'].IsPresent) {
+      Select-Object -ExpandProperty $name -InputObject $local:setting
+    }
+    if ($local:setting -ne $value) {
+      Set-ItemProperty -Path ('{0}/{1}' -f $hive,$path) -Name $name -Value $value
+    }
+  } else {
+    New-ItemProperty -Path ('{0}/{1}' -f $hive,$path) -Name $name -Value $value -PropertyType $propertyType
+  }
+  popd
+
+}
 

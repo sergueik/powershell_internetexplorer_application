@@ -27,6 +27,8 @@ param (
   [switch]$configure
 )
 
+$MODULE_NAME = 'internetexplorer_application_helper.psd1'
+Import-Module -Name ('{0}/{1}' -f '.', $MODULE_NAME )
 
 # based on: http://blogs.msdn.com/b/virtual_pc_guy/archive/2010/09/23/a-self-elevating-powershell-script.aspx
 # Get the ID and security principal of the current user account
@@ -61,7 +63,7 @@ if ($configure_flag) {
 
   $path_key = 'FEATURE_LOCALMACHINE_LOCKDOWN'
 
-  pushd $hive
+  pushd ('{0}/' -f $hive )
   $registry_path_status = Test-Path -Path ('{0}/{1}' -f $path, $path_key) -ErrorAction 'SilentlyContinue'
   if ($registry_path_status -ne $true) {
 
@@ -71,9 +73,6 @@ if ($configure_flag) {
   popd
   change_registry_setting -hive $hive -Name $name -Value $value -PropertyType $propertyType -path ('{0}/{1}' -f $path, $path_key)
 }
-
-$MODULE_NAME = 'internetexplorer_application_helper.psd1'
-Import-Module -Name ('{0}/{1}' -f '.', $MODULE_NAME )
 
 $ie = new-object -com 'internetexplorer.application'
 <#
