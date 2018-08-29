@@ -1,4 +1,3 @@
-
 <#
 .SYNOPSIS
     Highlights page element
@@ -772,6 +771,103 @@ function change_registry_setting {
     New-ItemProperty -Path ('{0}/{1}' -f $hive,$path) -Name $name -Value $value -PropertyType $propertyType
   }
   popd
-
 }
 
+<#
+.SYNOPSIS
+  Utility to return the computed size of the image https://stackoverflow.com/questions/10076031/naturalheight-and-naturalwidth-property-new-or-deprecated
+.DESCRIPTION
+  Runs Javascript on the page to return the image naturalWidth property.
+.EXAMPLE
+
+   $image_locator = '#hs_cos_wrapper_post_body > a:nth-child(3) > img'
+   $result = check_image_ready -window_ref ([ref]$window) -document_element_ref ([ref]$document_element) -locator $locator $image_locator
+
+.LINK
+  See also https://www.w3.org/TR/html5/embedded-content-0.html#the-img-element, https://stackoverflow.com/questions/29999515/get-final-size-of-background-image
+
+.NOTES
+  Based on: https://automated-testing.info/t/proverit-chto-background-image-zagruzilsya-na-stranicze/21424
+  NOTE: One can use this function to compute the naturalWidth property of the regular image but the page background
+  image https://www.w3schools.com/cssref/pr_background-image.asp does not have a dedicated tag and will fail to get naturalWidth.
+  Therefore this method will noe suit and detect when the background image is finished loading.
+  VERSION HISTORY
+  2018/08/27 Initial Version
+#>
+
+function check_image_ready {
+  param (
+    [System.Management.Automation.PSReference]$window_ref,
+    [System.Management.Automation.PSReference]$document_element_ref,
+    [switch]$debug,
+    [String]$locator = 'body'
+  )
+
+  $run_debug = [bool]$PSBoundParameters['debug'].IsPresent
+  if ($run_debug) {
+    write-debug 'in check_image_ready'
+  }
+
+  $window = $window_ref.Value
+  if ($document_element_ref -ne $null) {
+    $local:document_element = $document_element_ref.Value
+    $local:element = $null
+    try {
+      $local:element = $local:document_element.querySelector($locator, $null)
+      # alterntive: $local:document_element.querySelectorAll($locator)
+      $local:element.innerHTML | out-null
+    } catch [Exception] {
+      write-Debug ( 'Exception : ' + $_.Exception.Message)
+      return
+    }
+    if ($local:element -eq $null) {
+      write-Debug ('unable to find {0}' -f $locator )
+      return
+    }
+  }
+
+[String]$local:script = ( @"
+check_image_ready = function(selector, debug) {
+  var nodes = document.querySelectorAll(selector);
+  var element = nodes[0];
+  if (debug) {
+    try {
+
+      // alert('typeof element.complete: ' + typeof(element.complete)) ;
+      var element_complete = 'undef';
+      if (typeof(element.complete) != 'undefined') {
+        element_complete = element.complete.toString();
+      }
+      alert('element.complete = ' + element_complete);
+    } catch (error) {
+      // TypeError: Cannot read property 'toString' of undefined
+      alert(error.toString());
+    }
+    try {
+      // does not work inline:
+      //  alert('element.naturalWidth = ' + (typeof(element.naturalWidth) != 'undefined') ?  element.naturalWidth.toString() : '-1');
+      var element_naturalWidth = '-1';
+      if (typeof(element.naturalWidth) != 'undefined') {
+        element_naturalWidth = element.naturalWidth.toString();
+      }
+      alert('element.naturalWidth = ' + element_naturalWidth);
+    } catch (error) {
+      alert(error.toString());
+    }
+  }
+  return (element.complete && typeof element.naturalWidth != "undefined" && element.naturalWidth > 0) ? element.naturalWidth : -1
+}
+
+var selector = '{0}';
+var debug = {1};
+return check_image_ready(selector, debug);
+"@  -f $locator, $run_debug  )
+
+  write-debug ('Running the script : {0}' -f $local:script )
+  # NOTE: with 'Microsoft.PowerShell.Commands.WriteErrorException,check_image_ready' will be thrown if write-error is used here instead of write-debug
+
+  $local:result = ([OpenQA.Selenium.IJavaScriptExecutor]$selenium_ref.Value).ExecuteScript($local:script )
+  write-debug ('Result = {0}' -f $local:result)
+
+  return $local:result
+}
