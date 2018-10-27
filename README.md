@@ -111,7 +111,7 @@ would produce array of results (href attributes of the links in the table in thi
 "https://download.microsoft.com/download/F/8/A/F8AF50AB-3C3A-4BC4-8773-DC27B32988DD/MicrosoftWebDriver.exe"
 "https://download.microsoft.com/download/D/4/1/D417998A-58EE-4EFE-A7CC-39EF9E020768/MicrosoftWebDriver.exe"
 ...
-``` 
+```
 while
 ```powershell
 $result_obj =  collect_data_hash -window_ref ([ref]$window) -document_ref ([ref]$document) `
@@ -125,7 +125,7 @@ would produce a rowset of hashes:
 @{key=Release 17134; value=https://download.microsoft.com/download/F/8/A/F8AF50AB-3C3A-4BC4-8773-DC27B32988DD/MicrosoftWebDriver.exe}
 @{key=Release 16299; value=https://download.microsoft.com/download/D/4/1/D417998A-58EE-4EFE-A7CC-39EF9E020768/MicrosoftWebDriver.exe}
 ...
-``` 
+```
 which can be coverted into a hash with of links with text of the cell serving as the key.
 
 ### See Also:
@@ -144,6 +144,7 @@ which can be coverted into a hash with of links with text of the cell serving as
   * [handling alerts via `FindWindow` and `SendMessage`](https://social.technet.microsoft.com/Forums/ie/en-US/d1a556b7-54db-4513-bafd-f16ed000f9ac/vba-to-dismiss-an-ie8-or-ie9-message-from-webpage-popup-window?forum=ieitprocurrentver)
   * [another example](https://www.gngrninja.com/script-ninja/2016/9/25/powershell-getting-started-controlling-internet-explorer)
   * [little known Javascript methods (in Russian)](https://jsonplaceholder.typicode.com/comments?postId=200)
+  * [some full examples, exlaining frame switch (in Russian)](https://kazunposh.wordpress.com/category/powershell/internetexplorer/)
 
 ### License
 This project is licensed under the terms of the MIT license.
