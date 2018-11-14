@@ -28,7 +28,9 @@
 # NOTE: the example from MSDN https://blogs.msdn.microsoft.com/windowsappdev/2013/05/30/credential-locker-your-solution-for-handling-usernames-and-passwords-in-your-windows-store-app/
 # is not possible to use with Windows 8 and Desktop apps - see
 # the https://docs.microsoft.com/en-us/uwp/api/windows.security.credentials.passwordcredential classs is only defined for Windows 10
-
+# cmdkey can create, list, and deletes stored user names and passwords or credentials.
+# Passwords will not be displayed once they are stored
+# https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/cmdkey
 param(
   [switch]$debug
 )
