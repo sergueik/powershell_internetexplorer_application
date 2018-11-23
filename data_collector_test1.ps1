@@ -33,7 +33,12 @@
 $MODULE_NAME = 'internetexplorer_application_helper.psd1'
 Import-Module -Name ('{0}/{1}' -f '.', $MODULE_NAME )
 
-$ie = new-object -com 'internetexplorer.application'
+$ie = $null
+$ie = [System.Runtime.InteropServices.Marshal]::GetActiveObject('internetexplorer.application')
+if ($ie -eq $null){
+  $ie = new-object -com 'internetexplorer.application'
+}
+
 # see also 'MSXML2.DOMDocument'
 $ie.visible = $true
 $target_url = 'https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/'
@@ -67,5 +72,10 @@ $result_array = ($result_raw -replace '^\[', '' -replace '\]$' ) -split ','
 $result_array | format-list
 # quit and dispose IE
 $ie.Quit()
-[System.Runtime.Interopservices.Marshal]::ReleaseComObject($ie) | out-null
-Remove-Variable ie
+# when ReleaseComObject returns nonzero result, no action were taken
+# see also: https://www.add-in-express.com/creating-addins-blog/2013/11/05/release-excel-com-objects/
+# calling FinalReleaseComObject would be similar to calling ReleaseComObject in a loop repeating
+# until its reference count is zero -
+# When reference count is zero, it means the object is ready to be garbage collected.
+while( ([System.Runtime.Interopservices.Marshal]::ReleaseComObject($ie) | out-null) ) {}
+Remove-Variable ie -ErrorAction SilentlyContinue
