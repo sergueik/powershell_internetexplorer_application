@@ -146,7 +146,7 @@ which can be coverted into a hash with of links with text of the cell serving as
   * [little known Javascript methods (in Russian)](https://jsonplaceholder.typicode.com/comments?postId=200)
   * [some full examples, exlaining frame switch (in Russian)](https://kazunposh.wordpress.com/category/powershell/internetexplorer/)
   * [IE browser manipulation in c# fragment](https://social.msdn.microsoft.com/Forums/vstudio/en-US/819363f6-ab1b-4fbb-9ba6-a83dac8652df/2nd-call-to-internetexplorer-ie-in-new-shellwindows-fails?forum=csharpgeneral)
-
+  * [Internet Explorer’s Integrity Levels: Protected Mode etc.](https://blogs.msdn.microsoft.com/ieinternals/2011/08/03/default-integrity-level-and-automation/) 
   
 ### License
 This project is licensed under the terms of the MIT license.
