@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- origin: https://www.codeproject.com/Articles/5157449/MovieTracker-HTA-for-Tracking-Movie-Release-Dates --> 
+<head>
+  <title>Movie Tracker</title>
+  <hta:application id="movieTracker" 
+    applicationname="movieTracker" 
+    border="thick"
+    caption="yes"
+    showintaskbar="yes"
+    singleinstance="yes">
+	<style>
+		table {
+		border-collapse: collapse;
+		width: 100%;
+		}
+		th, td {
+		  padding: 15px;
+		  text-align: left;
+		}
+		table td {
+			border-left: 1px solid #000;
+			border-right: none;
+		}
+		table td:first-child {
+			border-left: none;
+		}
+		.hover { position: fixed; }
+		tr:hover {background-color: #292d33;}
+	</style>
+</head>
+ 
+<body><H1>Movie Tracker</H1><BR><INPUT onclick=addMovie() id=addbutton class=hover type=button value="Add a movie" name=addbutton><BR><BR><BR>
+<TABLE>
+<TBODY></TBODY></TABLE>
+<P id=dbg style="FONT-SIZE: 10px; FONT-FAMILY: courier; COLOR: red">&nbsp;</P>
+<SCRIPT type=text/vbscript>
+
+Const debugmode = False
+Const backupLocation = ".\MovieTrackerBackup"
+Const appname = "MovieTracker.hta"
+
+Const searchtitlestart = "<title>"
+Const searchtitleend = "</title>"
+Const searchdatestart = "title=""See more release dates"" >"
+Const searchdateend = "</a>"
+Const imdbUrl = "https://www.imdb.com/title/tt"
+
+Public http: Set http = CreateObject("Microsoft.XmlHttp")
+Public titlelist: Set titlelist = CreateObject("System.Collections.Sortedlist")
+Public urllist: Set urllist = CreateObject("System.Collections.Sortedlist")
+Public posterlist: Set posterlist = CreateObject("System.Collections.Sortedlist")
+
+Public key, url, title, datestring, datenum, imdbid, poster
+
+Dim WshShell: Set WshShell = CreateObject("WScript.Shell")
+Public curdir: curdir = WshShell.CurrentDirectory
+Set WshShell = Nothing
+
+Public tbody: Set tbody = document.getelementsbytagname("tbody")(0)
+Public dbg: Set dbg = document.getelementbyid("dbg")
+
+dbg.innerhtml = ""
+
+readMovies
+saveBackup
+updateTable
+
+Sub addMovie
+	url=Trim(InputBox("Enter IMDB URL"))
+	If url = "" Then Exit Sub
+	If Not checkImdbUrl(url) Then
+		MsgBox "URL is  not valid!"
+		Exit Sub
+	End If
+	If InStr(url,"?")>0 Then url = Left(url,InStr(url,"?")-1)
+	If checkExists(getImdbId(url)) Then
+		MsgBox "Item already exists!"
+		Exit Sub
+	End If
+	' Get movie info
+	getMovie(url)
+	If datestring = "" Then
+		MsgBox("Release date not found!")
+		Exit Sub
+	End If
+	
+	If debugmode Then dbg.innerhtml = dbg.innerhtml & "key=""" & key & """;url=""" & url & """;title=""" & title & """;datestring=""" & datestring & """;datenum=""" & datenum & """;imdbid=""" & imdbid & """;poster=""" & poster & """;<br />"
+	
+	If title = "" Then
+		MsgBox "Title not found"
+		Exit Sub
+	End If
+	If datestring = "" Then
+		MsgBox "Date not found"
+		Exit Sub
+	End If
+	insertListItem
+	updateTable
+End Sub
+
+Sub getMovie(url)
+	title=Replace(ImdbSearch(url,searchtitlestart,searchtitleend)," - IMDb","")
+	imdbid=GetImdbId(url)
+	datestring=ImdbSearch(url,searchdatestart,searchdateend)
+	If datestring<>"" Then
+		datestring=Left(datestring,InStr(datestring,"(")-2)
+	Else
+		Exit Sub
+	End If
+	datenum=convertDate(datestring)
+	poster=GetPoster(url)
+	key=getKey(datenum,imdbid)
+End Sub
+
+Sub readMovies
+	Set rows = tbody.getelementsbytagname("tr")
+	For Each tr In rows
+		Set td = tr.getelementsbytagname("td")
+		poster=td(0).getelementsbytagname("img")(0).getattribute("src")
+		datenum=Split(tr.getattribute("id"),"_")(0)
+		imdbid=Split(tr.getattribute("id"),"_")(1)
+		url = td(3).getelementsbytagname("a")(0).getattribute("href")
+		title=td(3).getelementsbytagname("a")(0).innerhtml
+		key = Getkey(datenum,imdbid)
+		insertListItem
+	Next
+End Sub
+
+Sub updateTable
+	If debugmode Then dbg.innerhtml = dbg.innerhtml & "UpdateTable<br />"
+	If debugmode Then dbg.innerhtml = dbg.innerhtml & "titlelist.Count=" & titlelist.Count & "; tr count=" & tbody.getelementsbytagname("tr").Length &"<br />"
+	' delete from end if there are too many rows in the table
+	While titlelist.Count < tbody.getelementsbytagname("tr").Length
+		deleteTableRow ""
+	Wend
+	Set trs = tbody.getelementsbytagname("tr")
+	If titleList.Count <> urllist.Count Or titleList.Count <> posterList.Count Then
+		If debugmode Then dbg.innerhtml = dbg.innerhtml & "ERROR: List mismatch --> titleList=" & titleList.Count & ";urllist=" & urllist.Count & ";posterList=" & posterList.Count & "<br />"
+	End If
+	For i = 0 To titleList.Count - 1
+		key = titleList.GetKey(i)
+		poster = posterList.GetByIndex(i)
+		datenum = Split(key, "_")(0)
+		imdbid = Split(key, "_")(1)
+		datestring = ConvertDate(datenum)
+		title = titleList.GetByIndex(i)
+		url = urllist.GetByIndex(i)
+		If debugmode Then dbg.innerhtml = dbg.innerhtml & "key=""" & key & """;url=""" & url & """;title=""" & title & """;datestring=""" & datestring & """;datenum=""" & datenum & """;imdbid=""" & imdbid & """;poster=""" & poster & """;<br />"
+		' if rows are missing, create new row
+		If i > trs.Length - 1 Then
+			CreateTableRow(key)
+			trs = tbody.getelementsbytagname("tr")
+		End If
+		updateTableRow(i)
+	Next
+	saveChanges
+End Sub
+
+Sub insertListItem
+	titlelist.Add key, title
+	urllist.Add key, url
+	posterlist.Add key, poster
+	If debugmode Then dbg.innerhtml = dbg.innerhtml & "list item inserted<br />"
+End Sub
+
+Sub createTableRow(rowid)
+	If debugmode Then dbg.innerhtml = dbg.innerhtml & "createTableRow(" & rowid & ")<br />"
+	Set tr = document.createelement("tr")
+	tr.setAttribute "id", rowid
+	tbody.appendChild(tr)
+	tr.appendChild(document.createelement("td")) ' poster
+	tr.appendChild(document.createelement("td")) ' release date
+	tr.appendChild(document.createelement("td")) ' days remaining
+	tr.appendChild(document.createelement("td")) ' title
+	tr.appendChild(document.createelement("td")) ' delete button
+End Sub
+
+Sub updateTableRow(rownum)
+	If debugmode Then dbg.innerhtml = dbg.innerhtml & "updateTableRow(" & rownum & ")<br />"
+	Set tr = tbody.getelementsbytagname("tr")(rownum)
+	tr.setAttribute "id", key
+	Set tds = tr.getelementsbytagname("td")
+	tds(0).innerhtml = "<img alt=""" & title & """ src=""" & poster & """ style=""height:100px"">"
+	If debugmode Then dbg.innerhtml = dbg.innerhtml & " tds(0)=" & poster & "<br />"
+	tds(1).innerhtml = datestring
+	If debugmode Then dbg.innerhtml = dbg.innerhtml & " tds(1)=" & datestring & "<br />"
+	dt=DateSerial(Left(datenum,4), Mid(datenum,5,2), Right(datenum,2))
+	remain = CStr(daysRemaining(dt))
+	If daysRemaining(dt) <= 0 Then
+		tds(2).innerhtml = "Released " & -remain & " days ago!"
+	Else
+		tds(2).innerhtml = remain & " days left"
+	End If
+	If remain < -60 Then tr.style.backgroundColor="#006400"
+	If remain >= -60 And remain <= 0 Then tr.style.backgroundColor="#ADFF2F"
+	If remain > 0 Then tr.removeAttribute("style")
+	If debugmode Then dbg.innerhtml = dbg.innerhtml & " tds(2)=" & tds(2).innerhtml & "<br />"
+	tds(3).innerhtml = "<a href=""" & url & """>" & title & "</a>"
+	If debugmode Then dbg.innerhtml = dbg.innerhtml & " tds(3)=" & title & "(" & url & ")<br />"
+	tds(4).innerhtml = "<input type=""button"" value=""Remove"" onclick=""deleteTableRow('" & key & "')"">"
+	If debugmode Then dbg.innerhtml = dbg.innerhtml & " tds(4)=" & Replace(Replace(tds(4).innerhtml,"<",""),">","") & "<br />"
+End Sub
+
+Sub deleteTableRow(rowid)
+	If debugmode Then dbg.innerhtml = dbg.innerhtml & " removing " & rowid & "<br />"
+	If rowid <> "" Then
+		tbody.removechild(document.getelementbyid(rowid))
+	Else
+		trs=tbody.getelementsbytagname("tr")
+		tbody.removeChild(trs(tbody.childElementCount-1))
+	End If
+	titlelist.Remove(rowid)
+	urllist.Remove(rowid)
+	posterlist.Remove(rowid)
+	SaveChanges
+End Sub
+
+Sub saveChanges
+	Dim fso: Set fso = CreateObject("Scripting.FileSystemObject")
+
+	Dim f: Set f = fso.OpenTextFile(curdir & "\" & appname,1,true)
+	
+	lines = f.ReadAll
+	f.Close
+	
+	lines = Left(lines, InStr(lines, "<body>")-1) & "<body>" & document.body.innerhtml & "</body>"
+	
+	Set f = fso.OpenTextFile(curdir & "\" & appname,2,true)
+	
+	f.Write lines
+	f.Close
+End Sub
+
+Sub saveBackup
+	CreateObject("Scripting.FileSystemObject").CopyFile curdir & "\" & appname, backupLocation & appname, True
+End Sub
+
+	Function daysRemaining(dt)
+		daysRemaining = DateDiff("d", Date(), dt)
+	End Function
+
+	Function checkExists(imdbid)
+		checkExists = False
+		For i = 0 To titlelist.Count - 1
+			id = titlelist.GetKey(i)
+			If InStr(id, imdbid) > 0 Then
+				checkExists = True
+				Exit Function
+			End If
+		Next
+	End Function
+
+	Function getKey(datenum, imdbid)
+		getKey = datenum & "_" & imdbid
+	End Function
+
+	Function getImdbId(url)
+		getImdbId = Right(url, Len(url)-InStr(url,"/tt"))
+		getImdbId = Left(getImdbId,Len(getImdbId)-1)
+	End Function
+
+	Function checkImdbUrl(url)
+		checkImdbUrl = False
+		If Left(url, Len(imdbUrl))=imdbUrl Then checkImdbUrl = True
+	End Function
+
+	Function convertDate(dt)
+		If IsNumeric(dt) Then
+			yyyy = CInt(Left(dt,4))
+			mm = CInt(Mid(dt,5,2))
+			dd = CInt(Right(dt,2))
+			Select Case mm
+				Case 1
+					mon = "January"
+				Case 2
+					mon = "February"
+				Case 3
+					mon = "March"
+				Case 4
+					mon = "April"
+				Case 5
+					mon = "May"
+				Case 6
+					mon = "June"
+				Case 7
+					mon = "July"
+				Case 8
+					mon = "August"
+				Case 9
+					mon = "September"
+				Case 10
+					mon = "October"
+				Case 11
+					mon = "November"
+				Case 12
+					mon = "December"
+			End Select
+			convertDate = CStr(dd) & " " & mon & " " & yyyy
+		Else
+			arr=Split(dt," ")
+			If UBound(arr)<>2 Then convertDate=""
+			dd=Right("0" & arr(0),2)
+			mm=""
+			Select Case LCase(arr(1))
+				Case "january"
+					mm="01"
+				Case "february"
+					mm="02"
+				Case "march"
+					mm="03"
+				Case "april"
+					mm="04"
+				Case "may"
+					mm="05"
+				Case "june"
+					mm="06"
+				Case "july"
+					mm="07"
+				Case "august"
+					mm="08"
+				Case "september"
+					mm="09"
+				Case "october"
+					mm="10"
+				Case "november"
+					mm="11"
+				Case "december"
+					mm="12"
+			End Select
+			If mm = "" Then convertDate = ""
+			yyyy = arr(2)
+			convertDate = yyyy & mm & dd
+		End If
+	End Function
+
+	Function ImdbSearch(url, startstring, endstring)
+		On Error Resume Next
+		http.open "GET", url, False
+		If Err.Number <> 0 Then
+			MsgBox "Invalid URL"
+			ImdbSearch = ""
+			Exit Function
+		End If
+		http.send ""
+		respons = http.responseText
+	
+		Dim line
+		Dim found: found = False
+		respons = Trim(respons)
+		Do While respons <> ""
+			line = Left(respons, InStr(respons, Chr(10)))
+			respons = Right(respons, Len(respons) - Len(line))
+			If found Then
+				' if end string is found
+				If InStr(ImdbSearch, endstring) Then
+					ImdbSearch = Left(ImdbSearch, InStr(ImdbSearch, endstring) - 1)
+					Exit Function
+				End If
+				ImdbSearch = ImdbSearch & line
+			End If
+			' if start string is found
+			If InStr(line, startstring) Then
+				ImdbSearch = Replace(Trim(line), startstring,"")
+				found = True
+			End If
+		Loop
+	End Function
+	
+	Function GetPoster(url)
+		GetPoster = ImdbSearch(url, "<div class=""poster"">","</div>")
+		GetPoster = trim(GetPoster)
+		If trim(GetPoster)="" Then Exit Function
+		GetPoster = Right(GetPoster,Len(GetPoster)-InStr(GetPoster,"src=")-4)
+		GetPoster = Replace(Trim(Left(GetPoster,InStr(GetPoster,"/>")-1)),"""","")
+	End Function
+</SCRIPT></body>
