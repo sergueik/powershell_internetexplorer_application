@@ -172,7 +172,7 @@ elements[0].click();
 .SYNOPSIS
     Locates page element
 .DESCRIPTION
-    Sends clickk to page element located by Javascript by executing Javascript through InternetExplorer.Application
+    Sends click to page element located by Javascript by executing Javascript through InternetExplorer.Application
 
 .EXAMPLE
     _locate -window_ref ([ref]$window) -locator $locator
@@ -871,3 +871,17 @@ return check_image_ready(selector, debug);
 
   return $local:result
 }
+#-----------------------------------------------------
+
+# based on: https://snipit.io/public/collections/4317/4335/13065
+function releaseRef {
+  param (
+    [System.Management.Automation.PSReference]$ref
+  )
+  
+  ([System.Runtime.InteropServices.Marshal]::ReleaseComObject(
+  [System.__ComObject]$ref) -gt 0)
+  [System.GC]::Collect()
+  [System.GC]::WaitForPendingFinalizers()
+}
+#--
