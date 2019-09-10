@@ -1,8 +1,10 @@
 @echo off
 REM This example exercises XML processing in mshta.exe
 SETLOCAL
-REM Set DEBUG to true to print additional innformation to the console
-set DEBUG=false
+
+REM set DEBUG to true to print additional innformation to the console
+if "%DEBUG%" equ "" set DEBUG=false
+
 for %%. in (groupId artifactId version ) do (
 call :CALL_JAVASCRIPT %%.
 )

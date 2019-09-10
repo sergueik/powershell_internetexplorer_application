@@ -1,9 +1,10 @@
 @echo off
 
 SETLOCAL
-REM set DEBUG to TRUE to print additional innformation to the console
-set VERBOSE=true
 
+
+REM set DEBUG to true to print additional innformation to the console
+if "%DEBUG%" equ "" set DEBUG=false
 
 call :CALL_JAVASCRIPT artifactId
 set ARTIFACTID=%VALUE%
@@ -16,7 +17,6 @@ set VERSION=%VALUE%
 
 call :CALL_JAVASCRIPT properties/mainClass
 set DEFAULT_MAIN_CLASS=%VALUE%
-
 
 if /i NOT "%VERBOSE%"=="true" goto :FINISH
 
@@ -31,7 +31,7 @@ exit /b
 
 :CALL_JAVASCRIPT
 REM This script illustrates the selectSingleNode method
-set "SCRIPT=mshta.exe "javascript:{"
+set "SCRIPT=javascript:{"
 set "SCRIPT=%SCRIPT% var fso = new ActiveXObject('Scripting.FileSystemObject');"
 set "SCRIPT=%SCRIPT% var out = fso.GetStandardStream(1);"
 set "SCRIPT=%SCRIPT% var fh = fso.OpenTextFile('pom.xml', 1, true);"
@@ -47,12 +47,11 @@ set "SCRIPT=%SCRIPT%   out.Write(xpath + '=' + xmlnode.text);"
 set "SCRIPT=%SCRIPT% } else {"
 set "SCRIPT=%SCRIPT%   out.Write('ERR');"
 set "SCRIPT=%SCRIPT% }"
-set "SCRIPT=%SCRIPT% close();}""
+set "SCRIPT=%SCRIPT% close();}"
 
+if /i "%DEBUG%"=="true" echo mshta.exe "%SCRIPT%"
+if /i "%DEBUG%"=="true" for /F "delims=" %%_ in ('mshta.exe "%SCRIPT%" 1 ^| more') do echo %%_
 
-if /i "%DEBUG%"=="true" echo %SCRIPT%
-if /i "%DEBUG%"=="true" for /F "delims=" %%_ in ('%SCRIPT% 1 ^| more') do echo %%_
-
-for /F "tokens=2 delims==" %%_ in ('%SCRIPT% 1 ^| more') do set VALUE=%%_
+for /F "tokens=2 delims==" %%_ in ('mshta.exe "%SCRIPT%" 1 ^| more') do set VALUE=%%_
 ENDLOCAL
 exit /b

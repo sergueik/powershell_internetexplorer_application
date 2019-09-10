@@ -1,14 +1,15 @@
 @echo off
 REM This example exercises XML processing in mshta.exe
+
 SETLOCAL
-REM Set DEBUG to true to print additional innformation to the console
-set DEBUG=false
+REM set DEBUG to true to print additional innformation to the console
+if "%DEBUG%" equ "" set DEBUG=false
 
 REM NOTE: mshta.exe fail when inline script exceeds certain size:
 REM 495 chars is OK
 REM 519 chars is not OK
 
-set "SCRIPT=mshta.exe "javascript:{"
+set "SCRIPT=javascript:{"
 set "SCRIPT=%SCRIPT% var fso = new ActiveXObject('Scripting.FileSystemObject');"
 set "SCRIPT=%SCRIPT% var out = fso.GetStandardStream(1);"
 set "SCRIPT=%SCRIPT% var fh = fso.OpenTextFile('pom.xml', 1, true);"
@@ -27,14 +28,15 @@ set "SCRIPT=%SCRIPT% var node = root.childNodes.item(1);"
 set "SCRIPT=%SCRIPT% out.Write(node.xml + '\n');"
 
 set "SCRIPT=%SCRIPT% node = root.childNodes.item(3);"
+REM adding any debug statements would lead the script to silently fail
 REM set "SCRIPT=%SCRIPT% out.Write('xxx');"
 set "SCRIPT=%SCRIPT% out.Write(node.nodeName + '\n');"
 
-set "SCRIPT=%SCRIPT% close();}""
+set "SCRIPT=%SCRIPT% close();}"
 
-if /i "%DEBUG%"=="true" echo %SCRIPT%
+if /i "%DEBUG%"=="true" echo mshta.exe "%SCRIPT%"
 
 REM the next line demonstrates how to consume the response from mstha.exe
-for /F "delims=" %%_ in ('%SCRIPT% 1 ^| more') do echo %%_
+for /F "delims=" %%_ in ('mshta.exe "%SCRIPT%" 1 ^| more') do echo %%_
 ENDLOCAL
 exit /b
