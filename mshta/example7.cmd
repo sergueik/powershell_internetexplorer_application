@@ -18,7 +18,7 @@ REM 495 chars is OK
 REM 519 chars is not OK
 REM Script below tries to save on var declaration, variable names etc. and whitespace, and this sacrifices redability
 
-set "SCRIPT=mshta.exe "javascript:{"
+set "SCRIPT=javascript:{"
 set "SCRIPT=%SCRIPT%f=new ActiveXObject('Scripting.FileSystemObject');"
 set "SCRIPT=%SCRIPT%c=f.GetStandardStream(1);"
 set "SCRIPT=%SCRIPT%h=f.OpenTextFile('pom.xml',1,1);"
@@ -33,11 +33,11 @@ set "SCRIPT=%SCRIPT%if (n.item(i).nodeName.match(RegExp(t, 'g'))) {"
 set "SCRIPT=%SCRIPT%c.Write(t+'='+n.item(i).text+'\n');"
 set "SCRIPT=%SCRIPT%}"
 set "SCRIPT=%SCRIPT%}"
-set "SCRIPT=%SCRIPT%close();}""
+set "SCRIPT=%SCRIPT%close();}"
 
-if /i "%DEBUG%"=="true" echo %SCRIPT%
+if /i "%DEBUG%"=="true" echo mshta.exe "%SCRIPT%"
 
 REM the next line demonstrates how to consume the response from mstha.exe
-for /F "delims=" %%_ in ('%SCRIPT% 1 ^| more') do echo %%_
+for /F "delims=" %%_ in ('mshta.exe "%SCRIPT%" 1 ^| more') do echo %%_
 ENDLOCAL
 exit /b
