@@ -5,7 +5,9 @@ REM set DEBUG to true to print additional innformation to the console
 if "%DEBUG%" equ "" set DEBUG=false
 
 echo:
-call :sub "/project/artifactId" ARTIFACT_ID
+
+REM quotes is optional
+call :sub "/project/artifactId" "ARTIFACT_ID"
 echo ARTIFACT_ID=%ARTIFACT_ID%
 
 call :sub "/project/groupId" GROUP_ID
@@ -58,3 +60,4 @@ set "SCRIPT=%SCRIPT% close();}"
 for /F "tokens=2 delims==" %%_ in ('mshta.exe "%SCRIPT%" 1 ^| more') do set VALUE=%%_
 ENDLOCAL
 exit /b
+
