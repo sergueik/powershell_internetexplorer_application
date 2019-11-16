@@ -130,7 +130,9 @@ which can be coverted into a hash with of links with text of the cell serving as
 
 ### See Also:
 
+  * [Introduciton to Internet Explorer Object, VB script syntax](https://riptutorial.com/vba/example/27772/internet-explorer-object)
   * [InternetExplorer COM a.k.a. SHDocVw.InternetExplorer object (Windows)](https://msdn.microsoft.com/en-us/ie/aa752084(v=vs.94))
+  * [InternetExplorer object](https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/platform-apis/aa752084(v%3Dvs.85))
   * [InternetExplorer IHTMLDocument3_Interface interface](https://msdn.microsoft.com/en-us/ie/hh773775(v=vs.94))
   * [InternetExplorer HTML document object](https://msdn.microsoft.com/en-us/ie/ms535862(v=vs.94))
   * [Web API DOM (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model)
@@ -146,7 +148,10 @@ which can be coverted into a hash with of links with text of the cell serving as
   * [little known Javascript methods (in Russian)](https://jsonplaceholder.typicode.com/comments?postId=200)
   * [some full examples, exlaining frame switch (in Russian)](https://kazunposh.wordpress.com/category/powershell/internetexplorer/)
   * [IE browser manipulation in c# fragment](https://social.msdn.microsoft.com/Forums/vstudio/en-US/819363f6-ab1b-4fbb-9ba6-a83dac8652df/2nd-call-to-internetexplorer-ie-in-new-shellwindows-fails?forum=csharpgeneral)
-  * [Internet Explorer’s Integrity Levels: Protected Mode etc.](https://blogs.msdn.microsoft.com/ieinternals/2011/08/03/default-integrity-level-and-automation/) 
+  * [Internet Explorer’s Integrity Levels: Protected Mode etc.](https://blogs.msdn.microsoft.com/ieinternals/2011/08/03/default-integrity-level-and-automation/)
+  * [HTA automation snippet collecyion (forum is in Russian, a free registration is required to access attached scripts)](http://forum.script-coding.com/viewforum.php?id=5) 
+  * [comparion of member list when working witn InternetExploret.Application and  Selenim from Powershell (in Russian)](https://toster.ru/q/603370)
+  * [Internet Explorer screenshots using Win32::OLE](https://www.perl.com/article/139/2014/12/11/Automated-Internet-Explorer-screenshots-using-Win32--OLE/)
   
 ### License
 This project is licensed under the terms of the MIT license.
