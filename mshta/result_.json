@@ -1,0 +1,53 @@
+{
+  "version": "3.7.0",
+  "examples": [
+    {
+      "id": "./spec/localhost/sample_spec.rb[1:2:1:1]",
+      "description": "should be directory",
+      "full_description": "uru Directories File \"/uru\" should be directory",
+      "status": "passed",
+      "file_path": "./spec/localhost/sample_spec.rb",
+      "line_number": 17,
+      "run_time": 0.045093106,
+      "pending_message": null
+    },
+    {
+      "id": "./spec/localhost/sample_spec.rb[1:3:1:2]",
+      "description": "should be mode 755",
+      "full_description": "uru Runners File \"/uru/uru_rt\" should be mode 755",
+      "status": "failed",
+      "file_path": "./spec/localhost/sample_spec.rb",
+      "line_number": 32,
+      "run_time": 0.023964649,
+      "pending_message": null,
+      "exception": {
+        "class": "RSpec::Expectations::ExpectationNotMetError",
+        "message": "expected `File \"/uru/uru_rt\".mode?(755)` to return true, got false",
+        "backtrace": [
+          "/root/.gem/ruby/2.1.0/gems/rspec-support-3.7.0/lib/rspec/support.rb:97:in `block in <module:Support>'",
+          "/root/.gem/ruby/2.1.0/gems/rspec-support-3.7.0/lib/rspec/support.rb:106:in `call'",
+          "/root/.gem/ruby/2.1.0/gems/rspec-core-3.7.0/exe/rspec:4:in `<main>'"
+        ]
+      }
+    },
+    {
+      "id": "./spec/localhost/sample_spec.rb[1:3:2:1]",
+      "description": "should be file",
+      "full_description": "uru Runners File \"/uru/runner.sh\" should be file",
+      "status": "passed",
+      "file_path": "./spec/localhost/sample_spec.rb",
+      "line_number": 31,
+      "run_time": 0.02135944,
+      "pending_message": null
+    }
+  ],
+  "summary": {
+    "duration": 0.861736653,
+    "example_count": 3,
+    "failure_count": 1,
+    "pending_count": 0,
+    "errors_outside_of_examples_count": 0
+  },
+  "summary_line": "3 examples, 1 failures"
+}
+
