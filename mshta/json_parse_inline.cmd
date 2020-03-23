@@ -32,7 +32,7 @@ REM or
 REM \SOFTWARE\Microsoft\Internet Explorer\MAIN\FeatureControl\FEATURE_BROWSER_EMULATION
 REM mshta.exe RegDword 8
 REM
-set "SCRIPT="javascript:{"
+set "SCRIPT=javascript:{"
 
 set "SCRIPT=%SCRIPT% var fso = new ActiveXObject('Scripting.FileSystemObject');"
 set "SCRIPT=%SCRIPT% var out = fso.GetStandardStream(1);"
@@ -42,19 +42,27 @@ set "SCRIPT=%SCRIPT% var _fh = fso.OpenTextFile('%FILEPATH%', 1, true);"
 set "SCRIPT=%SCRIPT% var _text = _fh.ReadAll();"
 set "SCRIPT=%SCRIPT% _fh.close();"
 REM set "SCRIPT=%SCRIPT% try { "
+REM set "SCRIPT=%SCRIPT% var _json = JSON.parse(_text);"
+REM set "SCRIPT=%SCRIPT% out.Write(_json['summary_line']);"
+REM set "SCRIPT=%SCRIPT% } catch (e) {out.Write('Error: ' + e.toString());}"
 
-REM set "SCRIPT=%SCRIPT% var _json = JSON.parse(_text);
-REM set "SCRIPT=%SCRIPT% _out.Write(_json.summary_line);"
-REM set "SCRIPT=%SCRIPT% } catch (e) {}"
-REM  230
-if /i "%DEBUG%" equ "true" set "SCRIPT=%SCRIPT% out.Write(navigator.userAgent + '\n');";
-set "SCRIPT=%SCRIPT% close();}""
+set "SCRIPT=%SCRIPT% var _json = null;"
+set "SCRIPT=%SCRIPT% try { "
+set "SCRIPT=%SCRIPT% _json = eval('(' + _text + ')');"
+set "SCRIPT=%SCRIPT% } catch (e) {out.Write('Error: ' + e.toString());}"
+REM NOTE: no serious script possible because of script size limits
+REM if /i "%DEBUG%" equ "true" set "SCRIPT=%SCRIPT% out.Write(navigator.userAgent + '\n');";
+set "SCRIPT=%SCRIPT% if (_json !== null) { "
+set "SCRIPT=%SCRIPT% out.Write('Result: '+ '\n' +_json['summary_line']+ '\n');"
+set "SCRIPT=%SCRIPT% }"
+set "SCRIPT=%SCRIPT% close();}"
 
-if /i "%DEBUG%" equ "true" echo mshta.exe %SCRIPT%
+if /i "%DEBUG%" equ "true" echo mshta.exe "%SCRIPT%"
 REM mshta.exe %SCRIPT%
 REM the next line demonstrates how to collect the response from mstha.exe
-for /F "delims=" %%_ in ('mshta.exe %SCRIPT% 1 ^| more') do echo %%_
+for /F "delims=" %%_ in ('mshta.exe "%SCRIPT%" 1 ^| more') do echo %%_
 ENDLOCAL
+
 
 
 
