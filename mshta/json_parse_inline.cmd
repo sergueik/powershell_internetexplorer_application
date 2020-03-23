@@ -1,69 +1,43 @@
 @echo off
-REM This example exercises JSON processing by mshta.exe doing the JSON.parse method call
-REM https://www.w3schools.com/js/js_json_parse.asp
-REM https://stackoverflow.com/questions/44547979/batch-parsing-json-file-with-colons-in-value
-REM set DEBUG to true to print additional innformation to the console
+REM This exercises JSON processing with mshta.exe doing eval of JSON file contents
+
 if "%DEBUG%" equ "" set DEBUG=false
 
-REM NOTE: mshta.exe fails with a incorehensive message once the inline script exceeds certain size:
-REM 495 chars is OK
-REM 519 chars is not OK
-
+REM NOTE: mshta.exe fails with a incomprehensive message
+REM if the inline script exceeds certain size between 495 and 519 characters
+REM making no serious script possible because of script size limit
 
 SETLOCAL
-set FILEPATH=%1
-if "%FILEPATH%" equ "" set FILEPATH=result_.json
-REM results\
-echo Parsing %FILEPATH%
-REM Frequent error
-REM The data necessary to  complete this operation is nt yet available
-REM JSON is undefined. Does it need Window?
-REM https://www.devcurry.com/2010/12/resolve-json-is-undefined-error-in.html
-REM https://stackoverflow.com/questions/8332362/script5009-json-is-undefined
-REM https://github.com/douglascrockford/JSON-js/blob/master/json2.js
-REM which is pretty heavy
-REM https://social.msdn.microsoft.com/Forums/ie/en-US/home?forum=iewebdevelopment
-REM based on https://deploywindows.com/2010/08/20/force-ie8-mode-in-hta/
-REM one has to modify
+set RESULTS_FILENAME=%1
+set RESULTS_DIRECTORY=results
+set DEFAULT_RESULTS_FILENAME=result_.json
+if "%RESULTS_FILENAME%" equ "" set RESULTS_FILENAME=%DEFAULT_RESULTS_FILENAME%
+set RESULTS=%RESULTS_DIRECTORY%\%RESULTS_FILENAME%
+if NOT EXIST %RESULTS%  echo Report does not exist %RESULTS% && exit /b 1
+pushd %RESULTS_DIRECTORY%
+set RESULTS=%RESULTS_FILENAME%
+if /i "%DEBUG%" equ "true" 1>&2 echo Parsing %RESULTS%
 
-REM HKLM\SOFTWARE\Wow6432Node\Microsoft\Internet Explorer\MAIN\FeatureControl\FEATURE_BROWSER_EMULATION
-REM HKCU\SOFTWARE\Wow6432Node\Microsoft\Internet Explorer\MAIN\FeatureControl\FEATURE_BROWSER_EMULATION
-REM or
-REM \SOFTWARE\Microsoft\Internet Explorer\MAIN\FeatureControl\FEATURE_BROWSER_EMULATION
-REM mshta.exe RegDword 8
-REM
 set "SCRIPT=javascript:{"
 
-set "SCRIPT=%SCRIPT% var fso = new ActiveXObject('Scripting.FileSystemObject');"
-set "SCRIPT=%SCRIPT% var out = fso.GetStandardStream(1);"
-set "SCRIPT=%SCRIPT% var fh = fso.OpenTextFile('pom.xml', 1, true);"
-REM https://docs.microsoft.com/en-us/office/vba/language/reference/user-interface-help/opentextfile-method
-set "SCRIPT=%SCRIPT% var _fh = fso.OpenTextFile('%FILEPATH%', 1, true);"
-set "SCRIPT=%SCRIPT% var _text = _fh.ReadAll();"
-set "SCRIPT=%SCRIPT% _fh.close();"
-REM set "SCRIPT=%SCRIPT% try { "
-REM set "SCRIPT=%SCRIPT% var _json = JSON.parse(_text);"
-REM set "SCRIPT=%SCRIPT% out.Write(_json['summary_line']);"
-REM set "SCRIPT=%SCRIPT% } catch (e) {out.Write('Error: ' + e.toString());}"
-
-set "SCRIPT=%SCRIPT% var _json = null;"
-set "SCRIPT=%SCRIPT% try { "
-set "SCRIPT=%SCRIPT% _json = eval('(' + _text + ')');"
-set "SCRIPT=%SCRIPT% } catch (e) {out.Write('Error: ' + e.toString());}"
-REM NOTE: no serious script possible because of script size limits
-REM if /i "%DEBUG%" equ "true" set "SCRIPT=%SCRIPT% out.Write(navigator.userAgent + '\n');";
-set "SCRIPT=%SCRIPT% if (_json !== null) { "
-set "SCRIPT=%SCRIPT% out.Write('Result: '+ '\n' +_json['summary_line']+ '\n');"
-set "SCRIPT=%SCRIPT% }"
+set "SCRIPT=%SCRIPT% var f = new ActiveXObject('Scripting.FileSystemObject');"
+set "SCRIPT=%SCRIPT% var o = f.GetStandardStream(1);"
+set "SCRIPT=%SCRIPT% var h = f.OpenTextFile('%RESULTS%');"
+set "SCRIPT=%SCRIPT% t = h.ReadAll();"
+set "SCRIPT=%SCRIPT% h.close();"
+set "SCRIPT=%SCRIPT% var j=eval('(' + t + ')');"
+set "SCRIPT=%SCRIPT% e=j['examples'];"
+set "SCRIPT=%SCRIPT% for (i = 0; i != e.length;i ++){"
+set "SCRIPT=%SCRIPT% r=e[i];"
+set "SCRIPT=%SCRIPT% if (!(r['status'].match(/passed|pending/))) {"
+set "SCRIPT=%SCRIPT% o.Write( 'Test: ' + r['full_description'] + '\n' + 'Status: ' +  r['status'] + '\n');
+set "SCRIPT=%SCRIPT% }}"
+set "SCRIPT=%SCRIPT% o.Write('Summary: '+ '\n' + j['summary_line']+ '\n');"
 set "SCRIPT=%SCRIPT% close();}"
+REM if /i "%DEBUG%" equ "true" set "SCRIPT=%SCRIPT% out.Write(navigator.userAgent + '\n');";
 
-if /i "%DEBUG%" equ "true" echo mshta.exe "%SCRIPT%"
-REM mshta.exe %SCRIPT%
-REM the next line demonstrates how to collect the response from mstha.exe
+if /i "%DEBUG%" equ "true" 1>&2 echo mshta.exe "%SCRIPT%"
+REM collect the output from mstha.exe
 for /F "delims=" %%_ in ('mshta.exe "%SCRIPT%" 1 ^| more') do echo %%_
+popd
 ENDLOCAL
-
-
-
-
-
