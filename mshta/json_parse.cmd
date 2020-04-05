@@ -4,9 +4,7 @@ REM This exercises JSON processing with mshta.exe JSON.parse in edge compat mode
 REM https://www.w3schools.com/js/js_json_parse.asp
 REM https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/general-info/ee330730(v=vs.85)?redirectedfrom=MSDN
 REM based on: https://stackoverflow.com/questions/44547979/batch-parsing-json-file-with-colons-in-value
-REM NOTE: after a failure file may get stuck:
-REM echo . >> processor.cmd
-REM The process cannot access the file because it is being used by another process.
+REM https://community.microfocus.com/t5/UFT-One-User-Discussions/How-to-convert-XML-to-JSON-using-VBSCRIPT/td-p/235545 
 
 setlocal enableDelayedExpansion
 
@@ -23,9 +21,15 @@ if NOT EXIST %RESULTS%  echo Report does not exist %RESULTS% && exit /b 1
 if /i "%DEBUG%" equ "true" 1>&2 echo echo %RESULTS%^|mshta.exe "%~f0"
 
 REM collect the output from mstha.exe
+
 for /f "tokens=* delims=" %%_ in ('echo %RESULTS%^|mshta.exe "%~f0"') do echo %%_
 
-exit /b %ERRORLVEL%
+REM NOTE: after a failure file may get stuck:
+REM echo . >> processor.cmd
+REM The process cannot access the file because it is being used by another process.
+REM The remediation may requite session log off
+
+exit /b %ERRORLEVEL%
 
 <HTA:Application ShowInTaskbar=no WindowsState=Minimize SysMenu=No ShowInTaskbar=No Caption=No Border=Thin>
 <!-- TODO: switch IE to standards-mode by adding a valid doctype. -->
