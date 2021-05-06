@@ -34,8 +34,8 @@ and invoke the appropriate static constructor.
 Another limitaion is the script size. It was found through experiment that
 `mshta.exe` fails silently when inline script exceeds certain size: 495 chars is OK, but 519 chars is not OK
 Therefore to make some node logic  possible the script developer is forced to
-save on language syntax (dropping var declaration  and use single-character variable names etc.)
-and whitespace, and this seriosly sacrifices redability of the script:
+save on language syntax (dropping var declaration and use single-character variable names etc.)
+and whitespace, and this seriosly sacrifices readability of the script:
 
 ```javascript
 javascript: {
@@ -82,11 +82,13 @@ c.Write(t+'='+n.item(i).text+'\n');
 close();}"
 ```
 
-Это помоему весьма полезно для java pom.xml "все в одном флаконе" javafx проектов на стадии разработки . потому что "все" не всегда озачает "и spring".
+Это по-моему довольно полезно для java `pom.xml` "все в одном флаконе"
+javafx проектов на стадии разработки.
+Потому что "все" не всегда озачает "и Spring".
 
-и чтобы собрать и запустить немного по разному jar 
+и чтобы собрать и запустить немного по разному jar
 
-Код: Выделить весь код
+```cmd
 set COMMAND=^
 java ^
   -cp %TARGET%\%APP_JAR%;%TARGET%\lib\* ^
@@ -94,12 +96,20 @@ java ^
   %1 %2 %3 %4 %5 %6 %7 %8 %9
 echo %COMMAND%>&2
 %COMMAND%
+```
 нужен "лончер"
-на маке и linux это шел а на ***де это нехорошо делатьв Powershell - очень медленный
-то есть cmd + mshta из pom.xml читает параметры и превращает в переменные - скрипт то лучше чтоб выглядел похоже для разных платформ.
+на маке и linux это шел а на ***де это нехорошо делать в
+Powershell - очень медленный
+то есть cmd + mshta из pom.xml читает параметры и превращает в переменные -
+скрипт то лучше чтоб выглядел похоже для разных платформ.
 
+### Note
+
+The script logic implicilty selects the closest matching node to the Document Element.
 ### License
 This project is licensed under the terms of the MIT license.
+### See Also
+  * [old MSXML XML DOM Method documentation](https://docs.microsoft.com/en-us/previous-versions/windows/desktop/ms757846(v=vs.85))
 
 ### Author
 [Serguei Kouzmine](kouzmine_serguei@yahoo.com)

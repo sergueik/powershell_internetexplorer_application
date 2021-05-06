@@ -59,7 +59,7 @@ goto :EOF
 
 
 :EXEC_MSHTA2_REDIRECT
-REM This script illustrates the Windows and LoctionName methods
+REM This script illustrates the Windows and LocationName methods
 REM C:\Users\sergueik>mshta.exe "javascript:{ var o = new ActiveXObject('Shell.Application'); var x =o.Windows(); var fso = new ActiveXObject('Scripting.FileSystemObject');var f = fso.CreateTextFile('c:\\temp\\dummy.txt', true); f.Write(x.Count); for (var cnt = 0; cnt < x.Count; cnt++) { w = x.item(cnt);  if (w.LocationName.match('Personalization')) {   f.Write('HWND:\t' + w.HWND); w.Quit();}} close();}"
 
 set LOG=c:\temp\dummy%RANDOM%.txt
