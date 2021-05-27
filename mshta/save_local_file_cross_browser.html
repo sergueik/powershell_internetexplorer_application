@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<!--
+  based on: https://stackoverflow.com/questions/24007073/open-links-made-by-createobjecturl-in-ie11
+  for a discussion of a legacy mshta variant, see
+  https://www.cyberforum.ru/javascript/thread2693738.html
+-->
+<head>
+<meta charset="UTF-8">
+<title>Title</title>
+<script src="js/jquery.min.js">
+</script>
+<body>
+<a id="export" class="myButton" download="" href="#">export</a>
+<button id="btnCreateLink">Create link</button>
+<input type="text" id="txtSave" />
+
+<script type="text/javascript">
+function createDownloadLink(anchorSelector, str, fileName) {
+  if (window.navigator.msSaveOrOpenBlob) {
+    var fileData = [str];
+    blobObject = new Blob(fileData);
+    $(anchorSelector).click(function() {
+      window.navigator.msSaveOrOpenBlob(blobObject, fileName);
+    });
+  } else {
+    var url = "data:text/plain;charset=utf-8," + encodeURIComponent(str);
+    console.log("Saving to url: " + url);
+    $(anchorSelector).attr("download", fileName);
+    $(anchorSelector).attr("href", url);
+  }
+}
+
+document.getElementById("btnCreateLink").addEventListener("click",
+    function(evt) {
+        let txt = document.getElementById("txtSave");
+        var str = txt.value || "hi,file";
+        console.log("Saving text: " + str);
+        createDownloadLink("#export", str, "file.txt");
+
+    });
+</script>
+</body>
+</html>

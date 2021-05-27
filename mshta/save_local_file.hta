@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  origin: https://www.cyberforum.ru/javascript/thread2693738.html
+  for a discussion of a more recent variant, see
+  https://stackoverflow.com/questions/24007073/open-links-made-by-createobjecturl-in-ie11
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+  content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <input type="text" id="txtSave" />
+  <button id="btnCreateLink">Create link</button>
+  <div id="divLink">
+  <a href="#" id="aSaveText" download="newtext.txt">Сохранить текст</a>
+  </div>
+<script type="text/javascript">
+document.getElementById("btnCreateLink").addEventListener("click", function(evt) {
+  let txt = document.getElementById("txtSave");
+  let a = document.getElementById("aSaveText");
+  if (a.href != "#") URL.revokeObjectURL(a.href);
+  let blob = new Blob([txt.value], {
+    type: "text/plain"
+  });
+  let url = window.URL.createObjectURL(blob);
+  a.href = url;
+});
+</script>
+</body>
+ </html>
