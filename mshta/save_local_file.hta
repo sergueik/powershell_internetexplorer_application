@@ -1,33 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
-<!--
-  origin: https://www.cyberforum.ru/javascript/thread2693738.html
-  for a discussion of a more recent variant, see
-  https://stackoverflow.com/questions/24007073/open-links-made-by-createobjecturl-in-ie11
--->
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-  content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-  <title>Document</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<script type="text/javascript">
+window.onload = function () {
+var width = 588;
+var height = 220;
+  window.resizeTo(width, height);
+  window.moveTo((screen.width - width) / 2, (screen.height - height) / 2);
+  document.body.style.zoom = "108%";
+}
+</script>
+
+<script type="text/vbscript" language="vbscript">
+' https://devblogs.microsoft.com/scripting/how-can-i-specify-a-window-size-for-my-hta/
+' https://stackoverflow.com/questions/3166195/change-hta-application-window-size
+' this vbscript code will not work in presence of "X-UA-Compatible" meta element above it
+Dim width = 588
+Dim height = 220
+
+Sub CenterWindow()
+  Dim x, y
+  With Window.Screen
+    x = (.AvailWidth - width ) \ 2
+    y = (.AvailHeight - 220 ) \ 2
+  End With
+  Window.MoveTo x, y
+End Sub
+
+Sub Window_onLoad
+  window.resizeTo width,height
+  Call CenterWindow
+End Sub
+</script>
+<!--
+https://superuser.com/questions/246553/how-to-disable-file-download-popup-in-internet-explorer#:~:text=Open%20Internet%20Explorer%20%3E%20Tools%20%3E%20Internet%20Options%20%3E%20Security%20%3E%20Custom,this%20for%20all%204%20zones.
+https://arno0x0x.wordpress.com/2017/11/20/windows-oneliners-to-download-remote-payload-and-execute-arbitrary-code/
+-->
+<meta charset="UTF-8">
+<title>Save text to local file</title>
 </head>
 <body>
-  <input type="text" id="txtSave" />
-  <button id="btnCreateLink">Create link</button>
-  <div id="divLink">
-  <a href="#" id="aSaveText" download="newtext.txt">Сохранить текст</a>
-  </div>
+<label for="txtSave">Enter text:</label><br/>
+<textarea id="txtSave" name="txtSave" rows="4" cols="50">
+	</textarea><br/>
+  <button id="btnCreateLink">Save file</button>
+	<button id="btnClose">Close</button>
 <script type="text/javascript">
-document.getElementById("btnCreateLink").addEventListener("click", function(evt) {
-  let txt = document.getElementById("txtSave");
-  let a = document.getElementById("aSaveText");
-  if (a.href != "#") URL.revokeObjectURL(a.href);
-  let blob = new Blob([txt.value], {
+
+document.getElementById("btnCreateLink").addEventListener("click", function (evt) {
+  var txt = document.getElementById("txtSave");
+  var blob = new Blob([txt.value], {
     type: "text/plain"
   });
-  let url = window.URL.createObjectURL(blob);
-  a.href = url;
+  var url = window.URL.createObjectURL(blob);
+  var fileName = "output.txt";
+  // https://developer.mozilla.org/en-US/docs/Web/API/Navigator/msSaveOrOpenBlob
+  // https://docs.microsoft.com/en-us/previous-versions/hh772332(v=vs.85)
+  var result = window.navigator.msSaveOrOpenBlob(blob, fileName);
 });
-</script>
+document.getElementById("btnClose").addEventListener("click", function (evt) {
+  window.close();
+});</script>
 </body>
- </html>
+</html>
+
