@@ -18,11 +18,15 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-# this illustrates that the "or" syntax of css selector is not supported very well by IE
+# this illustrates the "or" syntax of css selector
 # https://www.w3schools.com/cssref/css_selectors.asp
-  # in Powershell Version 4.0 [mshtml.HTMLDivElementClass] does not contain a method named 'getElementsByClassName'.
-  # in Powershell Version 4.0 [mshtml.HTMLDivElementClass] does not containa method named 'querySelectorall'.
-  # not practical to continue coding against 4.0
+# the two commented snippets do not work and will hang the IE and calling Powershell
+# with "a problem causes the program to stop working correctly" dialog. It is  helpful to start extra powershell.exe, stacked
+# This Exception cannot be caught. The code is commented out
+
+# NOTE: in Powershell Version 4.0 [mshtml.HTMLDivElementClass] does not contain a method named 'getElementsByClassName'.
+# in Powershell Version 4.0 [mshtml.HTMLDivElementClass] does not containa method named 'querySelectorall'.
+# not practical to continue coding against 4.0
 
 param (
   [String]$hub_ip = '',
@@ -46,10 +50,12 @@ param (
   $html = new-object -ComObject 'HTMLFile'
   $html.IHTMLDocument2_write($response_obj.rawContent)
 
-  $css_selector = '#rightColumn,#leftColumn p.proxyid'
+  # NOTE: the comma applies to the whole selector string, not just to the adjactent element locatos
+  $css_selector = '#rightColumn p.proxyid,#leftColumn p.proxyid'
 
   write-output 'attempt 1'
   $content = $html.getElementById('main_content')
+  write-output ('css_selector: "{0}"' -f $css_selector ) 
   $length = $content.querySelectorall($css_selector).length
   write-output('Found {0} elements' -f $length)
 
@@ -59,9 +65,16 @@ param (
     write-output ('processing item # {0}: "{1}"' -f $index, $element.InnerText)
     remove-variable element -ErrorAction SilentlyContinue
   }
-  remove-variable content -ErrorAction SilentlyContinue
   remove-variable length -ErrorAction SilentlyContinue
-
+  remove-variable content -ErrorAction SilentlyContinue
+  <#
+  try {
+    $length = $html.querySelectorall($css_selector).length
+    write-output('Found {0} elements' -f $length)
+  } catch [Exception] {
+    write-output ( 'Exception : ' + $_.Exception.Message)
+  }
+  #>
 
   write-output 'attempt 2'
   # $ids = @('left-column','right-column')
@@ -76,7 +89,6 @@ param (
     $content = $html.getElementById('main_content')
     $length = $content.querySelectorall($css_selector).length
     write-output('Found {0} elements' -f $length)
-
     @(0..($length-1)) | foreach-object {
       $index = $_
       # loading sets into variables appears to be less reliable that re-issuing a COM object call
@@ -87,6 +99,8 @@ param (
     remove-variable content -ErrorAction SilentlyContinue
   }
   remove-variable length -ErrorAction SilentlyContinue
+  remove-variable content -ErrorAction SilentlyContinue
+
   write-output 'attempt 3'
 
   $ids = @('leftColumn', 'rightColumn')
@@ -105,21 +119,15 @@ param (
       }
     }
   }
-  # the following two snippets do not work and will hang the IE and calling Powershell
-  # with "a problem causes the program to stop working correctly" dialog. It is  helpful to start extra powershell.exe, stacked
-  # This Exception cannot be caught. The code is commented out
+
   <#
   try {
-    $length = $html.querySelectorall('#leftColumn,#rightColumn p[class = "proxyid"]').length
-    write-output('Found {0} elements' -f $length)
-  } catch [Exception] {
-    write-output ( 'Exception : ' + $_.Exception.Message)
-  }
-  try {
     $column = $html.getElementById('leftColumn')
-    $element = $context.querySelectorall('p[class= "proxyid"]')|select-object -first 1
+    $element = $column.querySelectorall('p[class= "proxyid"]')|select-object -first 1
     $element.getType().FullName
   } catch [Exception] {
     write-output ( 'Exception : ' + $_.Exception.Message)
   }
   #>
+
+  remove-variable html -ErrorAction SilentlyContinue
