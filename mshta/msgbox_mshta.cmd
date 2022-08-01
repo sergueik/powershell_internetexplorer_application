@@ -3,8 +3,15 @@ set MESSAGE=%~1
 set TITLE=%~2
 1>&2 echo MESSAGE=%MESSAGE%
 1>&2 echo TITLE=%TITLE%
-REM https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualbasic.msgboxstyle?view=netframework-4.5
+REM NOTE that the if removed the colon,
+REM the following line will cause cmd show usage of "REM"
+REM Records comments (remarks) in a batch file or CONFIG.SYS.
+REM REM [comment]
+REM see also
+: REM http://blog.sevagas.com/?Hacking-around-HTA-files
+REM https://www.robvanderwoude.com/usermessages.php#MsHta
 REM Microsoft.VisualBasic.MsgBoxStyle
+REM https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualbasic.msgboxstyle?view=netframework-4.5
 REM vbAbortRetryIgnore=2	
 REM Abort, Retry, and Ignore buttons
 REM
@@ -63,4 +70,6 @@ REM
 REM vbYesNoCancel=3	
 REM Yes, No, and Cancel buttons
 REM
-mshta.exe vbscript:Execute("MsgBox ""%MESSAGE%"",vbQuestion ,""%TITLE%"":close()")
+REM for reading long message from the file
+REM dim fso, file, content: set fso = CreateObject(""Scripting.FileSystemObject""): set file = fso.OpenTextFile("".\message.txt"", 1): content = file.ReadAll: file.close
+mshta.exe vbscript:Execute("MsgBox ""%MESSAGE%"",vbQuestion or vbOKOnly ,""%TITLE%"":close()")
