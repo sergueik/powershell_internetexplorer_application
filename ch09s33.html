@@ -1,0 +1,62 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>9.33. PC speaker passthrough</title><meta name="generator" content="DocBook XSL Stylesheets V1.69.1"><link rel="start" href="index.html" title="Oracle VM VirtualBox®"><link rel="up" href="ch09.html" title="Chapter 9. Advanced topics"><link rel="prev" href="ch09s32.html" title="9.32. Paravirtualized debugging"><link rel="next" href="ch09s34.html" title="9.34. Accessing USB devices exposed over the network with USB/IP"><style type="text/css"><!--
+   .cmdsynopsis p
+   {
+     padding-left: 3.4em;
+     text-indent: -2.2em;
+   }
+   p.nextcommand
+   {
+     margin-top:    0px;
+     margin-bottom: 0px;
+   }
+   p.lastcommand
+   {
+     margin-top:    0px;
+   }
+  --></style></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="sect1" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="pcspeaker_passthrough"></a>9.33. PC speaker passthrough</h2></div></div></div><p>As an experimental feature (primarily due to being limited to Linux
+    host only and unknown Linux distribution coverage) VirtualBox supports
+    passing through the PC speaker to the host. The PC speaker (sometimes
+    called system speaker) is a way to produce audible feedback such as beeps
+    without the need for regular audio/sound card support.</p><p>The PC speaker passthrough feature in VirtualBox handles beeps only.
+    Advanced PC speaker use by the VM (such as PCM audio) will not work,
+    resulting in undefined host behavior.</p><p>Producing beeps on Linux is unfortunately a very complex topic.
+    VirtualBox offers a collection of options, in an attempt to make this work
+    deterministically and reliably on as many Linux distributions and system
+    configurations as possible:
+      </p><div class="table"><a name="idp13365488"></a><p class="title"><b>Table 9.4. PC speaker configuration options</b></p><table summary="PC speaker configuration options" border="1"><colgroup><col><col><col></colgroup><thead><tr><th><span class="bold"><strong>Code</strong></span></th><th><span class="bold"><strong>Device</strong></span></th><th><span class="bold"><strong>Notes</strong></span></th></tr></thead><tbody><tr><td>1</td><td><code class="computeroutput">/dev/input/ by-path/platform- pcspkr-event-spkr</code></td><td>Direct host PC speaker use.</td></tr><tr><td>2</td><td><code class="computeroutput">/dev/tty</code></td><td>Uses the terminal association of the VM process. VM needs
+              to be started on a virtual console.</td></tr><tr><td>3</td><td><code class="computeroutput">/dev/tty0</code> or
+              <code class="computeroutput">/dev/vc/0</code></td><td>Can only be used by user <code class="computeroutput">root</code>
+              or users with capability <code class="computeroutput">cap_sys_tty_config</code></td></tr><tr><td>9</td><td>user specified console or evdev device path</td><td>Like 1-3, just with a custom device path.</td></tr><tr><td>70</td><td><code class="computeroutput">/dev/tty</code></td><td>Standard beep only. Loses frequency and length. See code
+              2.</td></tr><tr><td>79</td><td>user specified terminal device path</td><td>Like 70, just with a custom device path.</td></tr><tr><td>100</td><td>all of the above</td><td>Tries all above codes.</td></tr></tbody></table></div><p>
+    </p><p>To enable PC speaker passthrough use the following command:
+      </p><pre class="screen">VBoxManage setextradata "VM name" "VBoxInternal/Devices/i8254/0/Config/PassthroughSpeaker" N</pre><p>
+    Replace <code class="computeroutput">N</code> with the code representing the
+    case you want to use. Changing this setting will take effect when the VM is
+    started next. It is safe to enable PC speaker passthrough on all host OSes.
+    It will only have an effect on Linux.</p><p>The VM log file, <code class="computeroutput">VBox.log</code>, will
+    contain lines with the prefix <code class="computeroutput">PIT: speaker:</code>
+    showing the PC speaker passthrough setup activities. It gives hints which
+    device it picked or why it failed.</p><p>Enabling PC speaker passthrough for the VM is usually the simple
+    part. The real difficulty is making sure that VirtualBox can access the
+    necessary device, because in a typical Linux install most of them can only
+    be accessed by user <code class="computeroutput">root</code>. You should
+    follow the preferred way to persistently change this, e.g. by referring to
+    your distribution's documentation. Since there are countless Linux
+    distribution variants, we can only give the general hints that there is
+    often a way to give the X11 session user access to additional devices, or
+    you need to find a working solution using a udev configuration file. If
+    everything fails you might try setting the permissions using a script
+    which is run late enough in the host system startup.</p><p>Sometimes additional rules are applied by the kernel to limit access
+    (e.g. that the VM process must have the same controlling terminal as the
+    device configured to be used for beeping, something which is often very
+    difficult to achieve for GUI applications such as VirtualBox). The table
+    above contains some hints, but generally refer to the Linux
+    documentation.</p><p>If you have trouble getting any beeps even if the device permissions
+    are set up and VBox.log confirms that it uses evdev or console for the
+    PC speaker control, check if your system has a PC speaker. Some systems do
+    not have one. Other complications can arise from Linux rerouting the PC
+    speaker output to a sound card. Check if the beeps are audible if you
+    connect speakers to your sound card. Today almost all systems have one.
+    Finally, check if the audio mixer control has a channel named "beep"
+    (could be hidden in the mixer settings) and that it isn't muted.</p></div></body></html>
+
