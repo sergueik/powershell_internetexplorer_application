@@ -23,15 +23,39 @@ try {
 
     foreach ($sheet in $wbB.Worksheets) {
         # evaluate if the sheet is blank
-$used = $sheet.UsedRange
+        $used = $sheet.UsedRange
 
-# Sheet is empty if UsedRange exists but has no usable cells
-$hasData = $used -and ($used.Rows.Count -gt 1 -or $used.Columns.Count -gt 1 -or $used.Value2)
+        # Sheet is empty if UsedRange exists but has no usable cells
+        $hasData = $used -and ($used.Rows.Count -gt 1 -or $used.Columns.Count -gt 1 -or $used.Value2)
 
-if (-not $hasData) {
-    continue
-}
-	
+        if (-not $hasData) {
+            continue
+        }
+        <#
+        # alternatively count non empty clls in the special range UsedRange:
+          $used = $sheet.UsedRange
+          $hasData = $used.Rows.Count -gt 1 -or $used.Columns.Count -gt 1 -or $used.Value2
+        #>
+
+        <#
+          # alternatively use special cell range 
+          # Excel constant:
+          $xlCellTypeLastCell = 11
+
+          try {
+            $last = $sheet.UsedRange.SpecialCells($xlCellTypeLastCell)
+            $isEmpty = ($last.Row -eq 1 -and $last.Column -eq 1 -and -not $sheet.Cells.Item(1,1).Value2)
+          }
+          catch {
+            # SpecialCells throws when the sheet is completely empty
+            $isEmpty = $true
+          }
+
+            if (-not $isEmpty) {
+              # copy the sheet
+            }
+
+    #>
         # Copy the sheet into workbook A at the end
         $sheet.Copy(
             [Type]::Missing,
