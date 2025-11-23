@@ -89,11 +89,15 @@ $workbook = $excel.Workbooks.Open($templatePath)
 $worksheet = $workbook.Sheets.Item('template')
 
 $format = @()
-$lastCol = $worksheet.Cells.Item(1, $worksheet.Columns.Count).End(-4159).Column
-$lastCol = 3
+# $lastCol = $worksheet.Cells.Item(1, $worksheet.Columns.Count).End(-4159).Column
 # xlToLeft = -4159
-# to find the last non-blank cell to the left of a specified range
 # https://learn.microsoft.com/en-us/office/vba/api/excel.xldirection
+# intended to help find the last non-blank cell to the left of a specified range
+# NOTE: is unreliable and if returns 1, 
+# Poweshell silently downcasts the 
+# $format from Array of HashMaps to a HashMAp which ruins the later processing 
+# $lastCol = 3
+$lastCol = $data[0].Count
 write-host ('Loading attributes of {0} cells in row 1' -f $lastcol)
 for ($col = 1; $col -le $lastCol; $col++) {
     $cell = $worksheet.Cells.Item(1, $col)
@@ -110,13 +114,13 @@ for ($col = 1; $col -le $lastCol; $col++) {
     }
 }
 $format |convertto-json -Depth 5 | write-host
-
+# TODO: assert
 # NOTE - fatal if 'template' is not found
 # 0x8002000B Invalid index. 
 # NOTE: no header row in template
-$startRow  = 1
-
 # NOTE:  Exception from HRESULT: 0x800A01A8 unknown HRESULT
+
+$startRow  = 1
 
 foreach ($item in $data) {
   1..($item.count) | foreach-object { 
@@ -129,31 +133,38 @@ foreach ($item in $data) {
 		$cell = $worksheet.Cells.Item($startRow,$index)
 		# put data 
     $cell.Value2 = $item[$index-1]
+		$cell.WrapText = $true
 		# apply formatting from template (flattened hashtable)
 		Apply-CellFormat -ExcelCell $cell -Format $format[$index-1]
-		<#
-		System.Collections.Hashtable
-		Apply-CellFormat : Cannot process argument transformation on parameter
-'Format'. Cannot convert the "System.Object[]" value of type "System.Object[]"
-to type "System.Collections.Hashtable".
-		System.Collections.Hashtable
-		#>
+		# $cell.Select() # Select cell
+    # $selection = $Excel.Selection # Get the selected cell object
+		# $range = $worksheet.Range($cell.Address)
+		$cell.Borders.LineStyle = 1 
+		# $xlContinuous
+		# https://learn.microsoft.com/en-us/office/vba/api/excel.xllinestyle
+    $cell.Borders.Weight = 2 
+		# $xlThin
+		# https://learn.microsoft.com/en-us/office/vba/api/excel.xlborderweight
 
   }
   $startRow++	
 }
 $worksheet.Name = $title
-# Save as new file
 $workbook.SaveAs($outputPath)
-# Clean up properly
-# 
 if ($workbook) { 
   $workbook.Close($true) 
 }
 $excel.Quit()
 
-# Release COM objects fully
+if($range -ne $null){
+  [System.Runtime.InteropServices.Marshal]::ReleaseComObject($range) | Out-Null
+}
+try {
+  [System.Runtime.InteropServices.Marshal]::ReleaseComObject($range) | Out-Null
+} catch {}
+[System.Runtime.InteropServices.Marshal]::ReleaseComObject($cell) | Out-Null
 [System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) | Out-Null
+[System.Runtime.InteropServices.Marshal]::ReleaseComObject($worksheet) | Out-Null
 [System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel) | Out-Null
 [GC]::Collect()
 [GC]::WaitForPendingFinalizers()
