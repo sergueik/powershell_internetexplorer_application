@@ -1,4 +1,4 @@
-# Using Excel.Application COM: Be??st Practices for Preserving Formatting relying on Excel .Copy() 
+# Using Excel.Application COM: Be??st Practices for Preserving formatting relying on Excel .Copy() 
 
 # param (
   $templatePath = "${env:TEMP}\template.xls"
@@ -6,42 +6,50 @@
   $outputPath = "${env:TEMP}\data.xls"
 #)
 
-function Apply-CellFormat {
+function Apply-Cellformat {
     param(
         [Parameter(Mandatory)]
         $ExcelCell,
         [Parameter(Mandatory)]
-        [hashtable]$Format
+        [hashtable]$format
     )
 
     # Font properties
-    if ($Format.ContainsKey('FontName'))      { $ExcelCell.Font.Name       = $Format['FontName'] }
-    if ($Format.ContainsKey('FontSize'))      { $ExcelCell.Font.Size       = $Format['FontSize'] }
-    if ($Format.ContainsKey('FontBold'))      { $ExcelCell.Font.Bold       = $Format['FontBold'] }
-    if ($Format.ContainsKey('FontItalic'))    { $ExcelCell.Font.Italic     = $Format['FontItalic'] }
-    if ($Format.ContainsKey('FontUnderline')) { $ExcelCell.Font.Underline  = $Format['FontUnderline'] }
-    if ($Format.ContainsKey('FontColor'))     { $ExcelCell.Font.Color      = $Format['FontColor'] }
+    if ($format.ContainsKey('FontName'))      { $ExcelCell.Font.Name       = $format['FontName'] }
+    if ($format.ContainsKey('FontSize'))      { $ExcelCell.Font.Size       = $format['FontSize'] }
+    if ($format.ContainsKey('FontBold'))      { $ExcelCell.Font.Bold       = $format['FontBold'] }
+    if ($format.ContainsKey('FontItalic'))    { $ExcelCell.Font.Italic     = $format['FontItalic'] }
+    if ($format.ContainsKey('FontUnderline')) { $ExcelCell.Font.Underline  = $format['FontUnderline'] }
+    if ($format.ContainsKey('FontColor'))     { $ExcelCell.Font.Color      = $format['FontColor'] }
 
     # Alignment
-    if ($Format.ContainsKey('HorizontalAlignment')) { $ExcelCell.HorizontalAlignment = $Format['HorizontalAlignment'] }
-    if ($Format.ContainsKey('VerticalAlignment'))   { $ExcelCell.VerticalAlignment   = $Format['VerticalAlignment'] }
-    if ($Format.ContainsKey('WrapText'))            { $ExcelCell.WrapText            = $Format['WrapText'] }
-    if ($Format.ContainsKey('Orientation'))         { $ExcelCell.Orientation         = $Format['Orientation'] }
+    if ($format.ContainsKey('HorizontalAlignment')) { $ExcelCell.HorizontalAlignment = $format['HorizontalAlignment'] }
+    if ($format.ContainsKey('VerticalAlignment'))   { $ExcelCell.VerticalAlignment   = $format['VerticalAlignment'] }
+    if ($format.ContainsKey('WrapText'))            { $ExcelCell.WrapText            = $format['WrapText'] }
+    if ($format.ContainsKey('Orientation'))         { $ExcelCell.Orientation         = $format['Orientation'] }
 
     # Number format / merging
-    if ($Format.ContainsKey('NumberFormat')) { $ExcelCell.NumberFormat = $Format['NumberFormat'] }
-    if ($Format.ContainsKey('MergeCells'))   { $ExcelCell.MergeCells   = $Format['MergeCells'] }
+    if ($format.ContainsKey('Numberformat')) { $ExcelCell.Numberformat = $format['Numberformat'] }
+    if ($format.ContainsKey('MergeCells'))   { $ExcelCell.MergeCells   = $format['MergeCells'] }
 
     # Interior / fill color
-    if ($Format.ContainsKey('InteriorColor')) { $ExcelCell.Interior.Color = $Format['InteriorColor'] }
+    if ($format.ContainsKey('InteriorColor')) { $ExcelCell.Interior.Color = $format['InteriorColor'] }
 
     # Optional: Borders (flattened hashtable for each border)
-    if ($Format.ContainsKey('Borders')) {
-        foreach ($borderKey in $Format['Borders'].Keys) {
-            $b = $ExcelCell.Borders.Item([int]$borderKey)
-            $b.LineStyle = $Format['Borders'][$borderKey].LineStyle
-            $b.Color     = $Format['Borders'][$borderKey].Color
-            $b.Weight    = $Format['Borders'][$borderKey].Weight
+    if ($format.ContainsKey('Borders')) {
+		write-host ('Count: {0}' -f  $format['Borders'].Count)
+		for ($col = 1; $col -le $format['Borders'].Count - 1; $col++) {
+            $b = $ExcelCell.Borders.Item([int]$col)
+						# 0x800A03EC 
+						write-host ('LineStyle :{0}' -f $format['Borders'][$col].LineStyle )
+            try { $b.LineStyle = $format['Borders'][$col].LineStyle} catch {}
+						write-host ('Color :{0}' -f $format['Borders'][$col].Color )
+            try { $b.Color     = $format['Borders'][$col].Color } catch {}
+						write-host ('Weight :{0}' -f $format['Borders'][$col].Weight )
+            try { $b.Weight    = $format['Borders'][$col].Weight } catch {}
+						# TODO: Unable to set the Weight property of the Border class
+						# Unable to set the Color property of the Border class
+						# Unable to set the LineStyle property of the Border class
         }
     }
 }
@@ -101,13 +109,23 @@ $lastCol = $data[0].Count
 write-host ('Loading attributes of {0} cells in row 1' -f $lastcol)
 for ($col = 1; $col -le $lastCol; $col++) {
     $cell = $worksheet.Cells.Item(1, $col)
+		$borderHash = @($null,$null,$null,$null,$null,$null,$null,$null,$null,$null,$null,$null,$null)
+		for ($b = 1; $b -le 12; $b++) {
+      $border = $cell.Borders.Item($b)
+			$borderHash[$b] = @{
+				LineStyle = $border.LineStyle
+				Color     = $border.Color
+				Weight    = $border.Weight
+			}
+		}
     $format += @{
         'FontName' = $cell.Font.Name
         'FontSize' = $cell.Font.Size
         'Bold' = $cell.Font.Bold
         'Color' = $cell.Font.Color
         'InteriorColor' = $cell.Interior.Color
-        'Borders' = $cell.Borders.LineStyle
+        # 'Borders' = $cell.Borders.LineStyle
+				'Borders' = $borderHash       # now rich
         'HorizontalAlignment' = $cell.HorizontalAlignment
         'VerticalAlignment' = $cell.VerticalAlignment
         'MergeCells' = $cell.MergeCells
@@ -135,7 +153,7 @@ foreach ($item in $data) {
     $cell.Value2 = $item[$index-1]
 		$cell.WrapText = $true
 		# apply formatting from template (flattened hashtable)
-		Apply-CellFormat -ExcelCell $cell -Format $format[$index-1]
+		Apply-Cellformat -ExcelCell $cell -format $format[$index-1]
 		# $cell.Select() # Select cell
     # $selection = $Excel.Selection # Get the selected cell object
 		# $range = $worksheet.Range($cell.Address)
