@@ -55,13 +55,41 @@ $startRow  = 2
 # NOTE:  Exception from HRESULT: 0x800A01A8 unknown HRESULT
 
 foreach ($item in $data) {
-  $worksheet.Rows.Item($sampleRow).Copy() |out-null
-  write-host('copied {0} to {1}' -f $sampleRow, $startRow)
-  $worksheet.Rows.Item($startRow).PasteSpecial(-4163) |out-null
+	# behavioral limitation of Excel COM, not of PowerShell
+	# is a known nasty Excel COM quirk.
+
+
+  # $worksheet.Rows.Item($sampleRow).Copy() |out-null
+  # write-host('copied {0} to {1}' -f $sampleRow, $startRow)
+	# $worksheet.Rows.Item($startRow).Select() 
+  # $worksheet.Rows.Item($startRow).PasteSpecial(-4163) |out-null
+
+	# Determine how many columns exist in the template row
+	$lastCol = $worksheet.Cells.Item($sampleRow, 
+	$worksheet.Columns.Count).End(-4159).Column   # xlToLeft = -4159
+
+	# Define source and destination ranges
+	$srcRange = $worksheet.Range(
+			$worksheet.Cells.Item($sampleRow, 1),
+			$worksheet.Cells.Item($sampleRow, $lastCol)
+	)
+
+	$dstRange = $worksheet.Range(
+			$worksheet.Cells.Item($startRow, 1),
+			$worksheet.Cells.Item($startRow, $lastCol)
+	)
+
+	# Copy/Paste using Range objects (REQUIRED)
+	$srcRange.Copy()
+	$dstRange.PasteSpecial(-4163)    # xlPasteFormats
 	# 4163 xlPasteFormats
   # https://learn.microsoft.com/en-us/office/vba/api/excel.xlpastetype
   # https://learn.microsoft.com/en-us/office/vba/api/excel.range.pastespecial
+	$excel.CutCopyMode = 0
+	# This is the minimal change that makes Excel actually paste something.
 
+
+	
   1..($item.count) | foreach-object { 
     $index = $_
     write-host ('insert "{0}" into {1},{2}' -f $item[$index-1], $startRow, $index)
