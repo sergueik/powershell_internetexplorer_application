@@ -5,6 +5,47 @@
   $htmlPath = "${env:TEMP}\data.htm"
   $outputPath = "${env:TEMP}\data.xls"
 #)
+
+function Apply-CellFormat {
+    param(
+        [Parameter(Mandatory)]
+        $ExcelCell,
+        [Parameter(Mandatory)]
+        [hashtable]$Format
+    )
+
+    # Font properties
+    if ($Format.ContainsKey('FontName'))      { $ExcelCell.Font.Name       = $Format['FontName'] }
+    if ($Format.ContainsKey('FontSize'))      { $ExcelCell.Font.Size       = $Format['FontSize'] }
+    if ($Format.ContainsKey('FontBold'))      { $ExcelCell.Font.Bold       = $Format['FontBold'] }
+    if ($Format.ContainsKey('FontItalic'))    { $ExcelCell.Font.Italic     = $Format['FontItalic'] }
+    if ($Format.ContainsKey('FontUnderline')) { $ExcelCell.Font.Underline  = $Format['FontUnderline'] }
+    if ($Format.ContainsKey('FontColor'))     { $ExcelCell.Font.Color      = $Format['FontColor'] }
+
+    # Alignment
+    if ($Format.ContainsKey('HorizontalAlignment')) { $ExcelCell.HorizontalAlignment = $Format['HorizontalAlignment'] }
+    if ($Format.ContainsKey('VerticalAlignment'))   { $ExcelCell.VerticalAlignment   = $Format['VerticalAlignment'] }
+    if ($Format.ContainsKey('WrapText'))            { $ExcelCell.WrapText            = $Format['WrapText'] }
+    if ($Format.ContainsKey('Orientation'))         { $ExcelCell.Orientation         = $Format['Orientation'] }
+
+    # Number format / merging
+    if ($Format.ContainsKey('NumberFormat')) { $ExcelCell.NumberFormat = $Format['NumberFormat'] }
+    if ($Format.ContainsKey('MergeCells'))   { $ExcelCell.MergeCells   = $Format['MergeCells'] }
+
+    # Interior / fill color
+    if ($Format.ContainsKey('InteriorColor')) { $ExcelCell.Interior.Color = $Format['InteriorColor'] }
+
+    # Optional: Borders (flattened hashtable for each border)
+    if ($Format.ContainsKey('Borders')) {
+        foreach ($borderKey in $Format['Borders'].Keys) {
+            $b = $ExcelCell.Borders.Item([int]$borderKey)
+            $b.LineStyle = $Format['Borders'][$borderKey].LineStyle
+            $b.Color     = $Format['Borders'][$borderKey].Color
+            $b.Weight    = $Format['Borders'][$borderKey].Weight
+        }
+    }
+}
+
 $data = New-Object System.Collections.ArrayList
 $html = new-object -com 'HTMLFile'
 $raw = get-content -literalpath $htmlPath -raw
