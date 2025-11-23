@@ -55,28 +55,20 @@ $startRow  = 2
 # NOTE:  Exception from HRESULT: 0x800A01A8 unknown HRESULT
 
 foreach ($item in $data) {
-	# behavioral limitation of Excel COM, not of PowerShell
-	# is a known nasty Excel COM quirk.
-
-
-  # $worksheet.Rows.Item($sampleRow).Copy() |out-null
-  # write-host('copied {0} to {1}' -f $sampleRow, $startRow)
-	# $worksheet.Rows.Item($startRow).Select() 
-  # $worksheet.Rows.Item($startRow).PasteSpecial(-4163) |out-null
 
 	# Determine how many columns exist in the template row
-	$lastCol = $worksheet.Cells.Item($sampleRow, 
-	$worksheet.Columns.Count).End(-4159).Column   # xlToLeft = -4159
+	$lastCol = $worksheet.Cells.Item($sampleRow, $worksheet.Columns.Count).End(-4159).Column
+	# xlToLeft = -4159
 
 	# Define source and destination ranges
 	$srcRange = $worksheet.Range(
-			$worksheet.Cells.Item($sampleRow, 1),
-			$worksheet.Cells.Item($sampleRow, $lastCol)
+		$worksheet.Cells.Item($sampleRow, 1),
+		$worksheet.Cells.Item($sampleRow, $lastCol)
 	)
 
 	$dstRange = $worksheet.Range(
-			$worksheet.Cells.Item($startRow, 1),
-			$worksheet.Cells.Item($startRow, $lastCol)
+		$worksheet.Cells.Item($startRow, 1),
+		$worksheet.Cells.Item($startRow, $lastCol)
 	)
 
 	# Copy/Paste using Range objects (REQUIRED)
