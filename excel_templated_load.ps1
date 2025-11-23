@@ -35,22 +35,31 @@ function Apply-Cellformat {
     # Interior / fill color
     if ($format.ContainsKey('InteriorColor')) { $ExcelCell.Interior.Color = $format['InteriorColor'] }
 
-    # Optional: Borders (flattened hashtable for each border)
-    if ($format.ContainsKey('Borders')) {
-		write-host ('Count: {0}' -f  $format['Borders'].Count)
-		for ($col = 1; $col -le $format['Borders'].Count - 1; $col++) {
-            $b = $ExcelCell.Borders.Item([int]$col)
-						# 0x800A03EC 
-						write-host ('LineStyle :{0}' -f $format['Borders'][$col].LineStyle )
-            try { $b.LineStyle = $format['Borders'][$col].LineStyle} catch {}
-						write-host ('Color :{0}' -f $format['Borders'][$col].Color )
-            try { $b.Color     = $format['Borders'][$col].Color } catch {}
-						write-host ('Weight :{0}' -f $format['Borders'][$col].Weight )
-            try { $b.Weight    = $format['Borders'][$col].Weight } catch {}
-						# TODO: Unable to set the Weight property of the Border class
-						# Unable to set the Color property of the Border class
-						# Unable to set the LineStyle property of the Border class
-        }
+    # Optional: Borders 
+		# NOTE: Excel border COM semantics are infamously fragile
+    $apply_borders_format = $false
+		if ($format.ContainsKey('Borders')) {
+			if ( $apply_borders_format ){		
+				write-host ('Applying {0} orders formats' -f  $format['Borders'].Count)
+				for ($col = 1; $col -lt $format['Borders'].Count; $col++) {
+					$b = $ExcelCell.Borders.Item([int]$col)
+					# 0x800A03EC 
+					# NOTE: orders 11 and 12 almost always throw 0x800A03EC because those indices correspond to:
+					# xlDiagonalDown, xlDiagonalUp
+					write-host ('LineStyle :{0}' -f $format['Borders'][$col].LineStyle )
+					try { $b.LineStyle = $format['Borders'][$col].LineStyle} catch {
+						write-host ('Exception: {0} with Borders #{1}' -f $_.Exception.Message, $col)
+					}
+					write-host ('Weight :{0}' -f $format['Borders'][$col].Weight )
+					try { $b.Weight    = $format['Borders'][$col].Weight } catch {
+						write-host ('Exception: {0} with Borders #{1}' -f $_.Exception.Message, $col)
+					}
+					write-host ('Color :{0}' -f $format['Borders'][$col].Color )
+					try { $b.Color     = $format['Borders'][$col].Color } catch {
+						write-host ('Exception: {0} with Borders #{1}' -f $_.Exception.Message, $col)
+					}
+					}
+				}
     }
 }
 
@@ -109,10 +118,12 @@ $lastCol = $data[0].Count
 write-host ('Loading attributes of {0} cells in row 1' -f $lastcol)
 for ($col = 1; $col -le $lastCol; $col++) {
     $cell = $worksheet.Cells.Item(1, $col)
-		$borderHash = @($null,$null,$null,$null,$null,$null,$null,$null,$null,$null,$null,$null,$null)
-		for ($b = 1; $b -le 12; $b++) {
-      $border = $cell.Borders.Item($b)
-			$borderHash[$b] = @{
+		# $borderHash = @($null,$null,$null,$null,$null,$null,$null,$null,$null,$null,$null,$null,$null)
+		$borderHash = New-Object 'System.Object[]' 8
+		$borderHash[0] = $null
+		for ($cnt = 1; $cnt -lt $borderHash.Count; $cnt++) {
+      $border = $cell.Borders.Item($cnt)
+			$borderHash[$cnt] = @{
 				LineStyle = $border.LineStyle
 				Color     = $border.Color
 				Weight    = $border.Weight
