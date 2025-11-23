@@ -87,47 +87,58 @@ $excel.DisplayAlerts = $false
 
 $workbook = $excel.Workbooks.Open($templatePath)
 $worksheet = $workbook.Sheets.Item('template')
+
+$format = @()
+$lastCol = $worksheet.Cells.Item(1, $worksheet.Columns.Count).End(-4159).Column
+$lastCol = 3
+# xlToLeft = -4159
+# to find the last non-blank cell to the left of a specified range
+# https://learn.microsoft.com/en-us/office/vba/api/excel.xldirection
+write-host ('Loading attributes of {0} cells in row 1' -f $lastcol)
+for ($col = 1; $col -le $lastCol; $col++) {
+    $cell = $worksheet.Cells.Item(1, $col)
+    $format += @{
+        'FontName' = $cell.Font.Name
+        'FontSize' = $cell.Font.Size
+        'Bold' = $cell.Font.Bold
+        'Color' = $cell.Font.Color
+        'InteriorColor' = $cell.Interior.Color
+        'Borders' = $cell.Borders.LineStyle
+        'HorizontalAlignment' = $cell.HorizontalAlignment
+        'VerticalAlignment' = $cell.VerticalAlignment
+        'MergeCells' = $cell.MergeCells
+    }
+}
+$format |convertto-json -Depth 5 | write-host
+
 # NOTE - fatal if 'template' is not found
 # 0x8002000B Invalid index. 
 # NOTE: no header row in template
-$sampleRow = 1
-$startRow  = 2
+$startRow  = 1
 
 # NOTE:  Exception from HRESULT: 0x800A01A8 unknown HRESULT
 
 foreach ($item in $data) {
-
-	# Determine how many columns exist in the template row
-	$lastCol = $worksheet.Cells.Item($sampleRow, $worksheet.Columns.Count).End(-4159).Column
-	# xlToLeft = -4159
-
-	# Define source and destination ranges
-	$srcRange = $worksheet.Range(
-		$worksheet.Cells.Item($sampleRow, 1),
-		$worksheet.Cells.Item($sampleRow, $lastCol)
-	)
-
-	$dstRange = $worksheet.Range(
-		$worksheet.Cells.Item($startRow, 1),
-		$worksheet.Cells.Item($startRow, $lastCol)
-	)
-
-	# Copy/Paste using Range objects (REQUIRED)
-	$srcRange.Copy()
-	$dstRange.PasteSpecial(-4163)    # xlPasteFormats
-	# 4163 xlPasteFormats
-  # https://learn.microsoft.com/en-us/office/vba/api/excel.xlpastetype
-  # https://learn.microsoft.com/en-us/office/vba/api/excel.range.pastespecial
-	$excel.CutCopyMode = 0
-	# This is the minimal change that makes Excel actually paste something.
-
-
-	
   1..($item.count) | foreach-object { 
     $index = $_
     write-host ('insert "{0}" into {1},{2}' -f $item[$index-1], $startRow, $index)
     # $worksheet.Cells.Item($startRow,$index).Value2 = $item[$index-1] | out-null
-		$worksheet.Cells.Item($startRow,$index).Value2 = $item[$index-1] | out-null
+		# avoid subtle COM/PowerShell interaction issue with Excel
+		# fill data w/o formatting 
+		# $worksheet.Cells.Item($startRow,$index).Value2 = $item[$index-1]  }
+		$cell = $worksheet.Cells.Item($startRow,$index)
+		# put data 
+    $cell.Value2 = $item[$index-1]
+		# apply formatting from template (flattened hashtable)
+		Apply-CellFormat -ExcelCell $cell -Format $format[$index-1]
+		<#
+		System.Collections.Hashtable
+		Apply-CellFormat : Cannot process argument transformation on parameter
+'Format'. Cannot convert the "System.Object[]" value of type "System.Object[]"
+to type "System.Collections.Hashtable".
+		System.Collections.Hashtable
+		#>
+
   }
   $startRow++	
 }
